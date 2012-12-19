@@ -481,7 +481,7 @@ class Minitel:
         assert largeur == 1 or largeur == 2
         assert hauteur == 1 or hauteur == 2
 
-        self.envoyer([ESC, 0x4c + hauteur + largeur * 2])
+        self.envoyer([ESC, 0x4c + (hauteur - 1) + (largeur - 1) * 2])
 
     def effet(self, soulignement = None, clignotement = None, inversion = None):
         assert soulignement == True or soulignement == False or soulignement == None
@@ -541,4 +541,57 @@ class Minitel:
     def debutLigne(self): self.envoyer([CR])
     def geresupprime(self, nombre): self.envoyer([CSI, str(nombre), 'M'])
     def gereinsere(self, nombre): self.envoyer([CSI, str(nombre), 'L'])
+
+    def semigraphique(self, actif = True):
+        assert actif == True or actif == False
+        actifs = { True: SO, False: SI}
+        self.envoyer(actifs[actif])
+
+    def redefinir(self, depuis, dessins, jeu = 'G0'):
+        assert jeu == 'G0' or jeu == 'G1'
+        assert isinstance(depuis, str) and len(depuis) == 1
+        assert isinstance(dessins, str)
+
+        # Deux jeux sont disponible G’0 et G’1
+        if jeu == 'G0':
+            self.envoyer([US, 0x23, 0x20, 0x20, 0x20, 0x42, 0x49])
+        else:
+            self.envoyer([US, 0x23, 0x20, 0x20, 0x20, 0x43, 0x49])
+
+        # On indique à partir de quel caractère on veut rédéfinir les dessins
+        self.envoyer([US, 0x23, depuis, 0x30])
+
+        octet = ''
+        comptePixel = 0
+        for pixel in dessins:
+            # Seuls les caractères 0 et 1 sont interprétés, les autres sont
+            # ignorés. Cela permet de présenter les dessins dans le code
+            # source de façon plus lisible
+            if pixel != '0' and pixel != '1': continue
+            octet = octet + pixel
+            comptePixel += 1
+
+            # On regroupe les pixels du caractères par paquets de 6
+            # car on ne peut envoyer que 6 bits à la fois
+            if len(octet) == 6:
+                self.envoyer(0x40 + int(octet, 2))
+                octet = ''
+
+            # Quand 80 pixels (8 colonnes × 10 lignes) ont été envoyés
+            # on ajoute 4 bits à zéro car l’envoi se fait par paquet de 6 bits
+            # (8×10 = 80 pixels, 14×6 = 84 bits, 84-80 = 4)
+            if comptePixel == 80:
+                self.envoyer(0x40 + int(octet + '0000', 2))
+                self.envoyer(0x30)
+                octet = ''
+                comptePixel = 0
+
+        # Positionner le curseur permet de sortir du mode de définition
+        self.envoyer([US, 0x41, 0x41])
+
+        # Sélectionne le jeu de caractère fraîchement modifié (G’0 ou G’1)
+        if jeu == 'GO':
+            self.envoyer([ESC, 0x28, 0x20, 0x42])
+        else:
+            self.envoyer([ESC, 0x29, 0x20, 0x43])
 
