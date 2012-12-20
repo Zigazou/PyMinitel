@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from minitel.Minitel import Minitel
+from minitel.Sequence import Sequence
 from minitel.ui.UI import UI
 from minitel.ui.Menu import Menu
 from minitel.constantes import *
-from minitel.utils import canon, comparer
 from random import choice
 
 from plateau import Plateau, INEXPLORE, DRAPEAU, DECOUVERT
@@ -70,6 +70,8 @@ class Demineur(UI):
         self.curseurY = self.hauteur / 2
 
     def gereTouche(self, sequence):
+        assert isinstance(sequence, Sequence)
+
         x = self.curseurX - self.x
         y = self.curseurY - self.y
 
@@ -77,7 +79,7 @@ class Demineur(UI):
         if self.perdu: return False        
 
         # Déplacement du curseur vers le haut
-        if comparer(sequence, HAUT):
+        if sequence.egale(HAUT):
             if self.curseurY > self.y:
                 self.curseurY -= 1
                 self.placeCurseur()
@@ -86,7 +88,7 @@ class Demineur(UI):
             return True
 
         # Déplacement du curseur vers le bas
-        if comparer(sequence, BAS):
+        if sequence.egale(BAS):
             if self.curseurY < self.hauteur:
                 self.curseurY += 1
                 self.placeCurseur()
@@ -95,7 +97,7 @@ class Demineur(UI):
             return True
 
         # Déplacement du curseur vers la gauche
-        if comparer(sequence, GAUCHE):
+        if sequence.egale(GAUCHE):
             if self.curseurX > self.x:
                 self.curseurX -= 1
                 self.placeCurseur()
@@ -104,7 +106,7 @@ class Demineur(UI):
             return True
 
         # Déplacement du curseur vers la droite
-        if comparer(sequence, DROITE):
+        if sequence.egale(DROITE):
             if self.curseurX < self.largeur:
                 self.curseurX += 1
                 self.placeCurseur()
@@ -113,7 +115,7 @@ class Demineur(UI):
             return True
 
         # Creuse à l’emplacement courant
-        if comparer(sequence, ' '):
+        if sequence.egale(' '):
             # Si le démineur creuse là où il a déjà creusé, on ignore
             if self.plateau.visibilite(x, y) == DECOUVERT:
                 return True
@@ -143,7 +145,7 @@ class Demineur(UI):
             return True
 
         # Pose un drapeau
-        if comparer(sequence, ENTREE):
+        if sequence.egale(ENTREE):
             self.minitel.semigraphique()
             self.minitel.envoyer(CASEDRAPEAU)
             self.placeCurseur()

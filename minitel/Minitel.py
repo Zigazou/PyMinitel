@@ -1,18 +1,62 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-from serial import Serial
-from threading import Thread
-from Queue import Queue, Empty
 
-from binascii import unhexlify
-from time import sleep
+from serial import Serial      # Liaison physique avec le Minitel
+from threading import Thread   # Threads pour l’émission/réception
+from Queue import Queue, Empty # Files de caractères pour l’émission/réception
 
-from constantes import *
-from utils import canon
+from binascii import unhexlify # Pour créer des chaînes binaires depuis une
+                               # chaîne hexa
+
+from constantes import *       # Constantes en rapport avec le Minitel
+from Sequence import Sequence  # Gestion des séquences de caractères
 
 class Minitel:
+    """Une classe de pilotage du Minitel via un port série
+
+    La classe Minitel permet d’envoyer et de recevoir des séquences de
+    caractères vers et depuis un Minitel dans un programme écrit en Python.
+    Elle fonctionne via une liaison série entre l’ordinateur et le Minitel.
+
+    Par défaut, elle utilise /dev/ttyUSB0 comme périphérique. En effet, l’une
+    des manières les plus simples de relier un Minitel à un ordinateur
+    consiste à utiliser un câble USB-TTL 5v (PL2303) car la prise
+    péri-informatique du Minitel fonctionne en TTL (0v/5v) et non en RS232
+    (-12v/12v). Ce type de câble embarque un composant qui est reconnu
+    automatiquement par les noyaux Linux et est assigné à /dev/ttyUSB*.
+
+    Tant que le périphérique sélectionné est un périphérique série, cette
+    classe ne devrait pas poser de problème pour communiquer avec le Minitel.
+    Par exemple, il est tout à fait possible de créer un proxy série en
+    utilisant un Arduino relié en USB à l’ordinateur et dont certaines
+    broches seraient relié au Minitel.
+
+    La classe Minitel permet de déterminer la vitesse de fonctionnement du
+    Minitel, d’identifier le modèle, de le configurer et d’envoyer et recevoir
+    des séquences de caractères.
+
+    Compte tenu de son fonctionnement en threads, le programme principal
+    utilisant cette classe n’a pas à se soucier d’être disponible pour recevoir
+    les séquences de caractères envoyées par le Minitel.
+    """
     def __init__(self, peripherique = '/dev/ttyUSB0'):
+        """Constructeur de Minitel
+
+        Arguments:
+        peripherique -- une chaîne de caractères identifiant un périphérique.
+                        Par défaut, le périphérique est /dev/ttyUSB0
+
+        Note:
+        La connexion série est établie selon le standard de base du Minitel.
+        À l’allumage le Minitel est configuré à 1200 bps, 7 bits, parité paire,
+        mode Vidéotex.
+
+        Cela peut ne pas correspondre à la configuration réelle du Minitel au
+        moment de l’exécution. Cela n’est toutefois pas un problème car la
+        connexion série peut être reconfigurée à tout moment.
+        """
+        assert isinstance(peripherique, str)
+
         # Initialise l’état du Minitel
         self.mode = 'VIDEOTEX'
         self.vitesse = 1200
@@ -36,16 +80,17 @@ class Minitel:
         # Initialise la connexion avec le Minitel
         self._minitel = Serial(
             peripherique,
-            baudrate = 1200,
-            bytesize = 7,
-            parity   = 'E',
-            stopbits = 1,
-            timeout  = 1,
-            xonxoff  = 0,
-            rtscts   = 0
+            baudrate = 1200, # vitesse à 1200 bps, le standard Minitel
+            bytesize = 7,    # taille de caractère à 7 bits
+            parity   = 'E',  # parité paire
+            stopbits = 1,    # 1 bit d’arrêt
+            timeout  = 1,    # 1 bit de timeout
+            xonxoff  = 0,    # pas de contrôle logiciel
+            rtscts   = 0     # pas de contrôle matériel
         )
 
         # Initialise un drapeau pour l’arrêt des threads
+        # (les threads partagent les mêmes variables que le code principal)
         self._continuer = True
 
         # Crée les deux threads de lecture/écriture
@@ -55,13 +100,23 @@ class Minitel:
 
         # Démarre les deux threads de lecture/écriture
         for t in self._threads:
+            # Configure chaque thread en mode daemon
             t.setDaemon(True)
             try:
+                # Lance le thread
                 t.start()
             except (KeyboardInterrupt, SystemExit):
                 self.close()
 
     def close(self):
+        """Ferme la connexion avec le Minitel
+
+        Indique aux threads d’émission/réception qu’ils doivent s’arrêter et
+        attend leur arrêt. Comme les timeouts d’émission et de réception sont
+        réglés à 1 seconde, c’est le temps moyen que cette méthode mettra pour
+        s’exécuter.
+        """
+        # Indique aux threads qu’ils doivent arrêter toute activité
         self._continuer = False
 
         # Attend que tous les threads aient fini
@@ -70,6 +125,12 @@ class Minitel:
         self._minitel.close()
 
     def _gestionEntree(self):
+        """Gestion des séquences de caractères envoyées depuis le Minitel
+
+        Cette méthode ne doit pas être appelée directement, elle est réservée
+        exclusivement à la classe Minitel. Elle boucle indéfiniment en tentant
+        de lire un caractère sur la connexion série.
+        """
         # Ajoute à la file entree tout ce que le Minitel peut envoyer
         while self._continuer:
             # Attend un caractère pendant 1 seconde
@@ -78,6 +139,12 @@ class Minitel:
             if len(caractere) == 1: self.entree.put(caractere)
 
     def _gestionSortie(self):
+        """Gestion des séquences de caractères envoyées vers le Minitel
+
+        Cette méthode ne doit pas être appelée directement, elle est réservée
+        exclusivement à la classe Minitel. Elle boucle indéfiniment en tentant
+        de lire un caractère sur la file de sortie.
+        """
         # Envoie au Minitel tout ce qui se trouve dans la file sortie et
         # continue de le faire tant que le drapeau continuer est à vrai
         while self._continuer or not self.sortie.empty():
@@ -96,49 +163,65 @@ class Minitel:
                 continue
 
     def envoyer(self, contenu):
-        if isinstance(contenu, int):
-            self.sortie.put(chr(contenu))
-        elif isinstance(contenu, str):
-            for caractere in contenu:
-                self.sortie.put(caractere)
-        elif isinstance(contenu, unicode):
-            for caractere in self.normaliserChaine(contenu):
-                self.sortie.put(caractere)
-        elif isinstance(contenu, list):
-            for element in contenu:
-                self.envoyer(element)
+        """Envoi de séquence de caractères 
+
+        Envoie une séquence de caractère en direction du Minitel.
+
+        Arguments:
+        contenu -- Une séquence de caractères interprétable par la classe
+                   Sequence.
+        """
+        if not isinstance(contenu, Sequence): contenu = Sequence(contenu)
+
+        # Ajoute les caractères un par un dans la file d’attente d’envoi
+        for valeur in contenu.valeurs:
+            self.sortie.put(chr(valeur))
 
     def recevoir(self, bloque = False, attente = None):
+        """Lit un caractère en provenance du Minitel
+
+        Retourne un caractère présent dans la file d’attente de réception.
+
+        Arguments:
+        bloque -- True pour attendre un caractère s’il n’y en a pas dans la
+                  file d’attente de réception. False pour ne pas attendre et
+                  retourner immédiatement.
+        attente -- attente en secondes, valeurs en dessous de la seconde
+                   acceptées. Valide uniquement en mode bloque = True
+        """
+        assert bloque in [True, False]
+        assert isinstance(attente, float) or attente == None
+
         return self.entree.get(bloque, attente)
 
     def recevoirSequence(self):
-        sequence = [ord(self.recevoir(bloque = True))]
+        sequence = Sequence()
+        sequence.ajoute(self.recevoir(bloque = True))
 
-        if sequence[0] in [SS2, SEP]:
-            sequence.append(ord(self.recevoir(bloque = True)))
-        elif sequence[0] == ESC:
+        if sequence.valeurs[-1] in [SS2, SEP]:
+            sequence.ajoute(self.recevoir(bloque = True))
+        elif sequence.valeurs[-1] == ESC:
             try:
-                caractere = self.recevoir(bloque = True, attente = 0.1)
-                sequence.append(ord(caractere))
+                sequence.ajoute(self.recevoir(bloque = True, attente = 0.1))
 
-                if sequence == CSI:
-                    sequence.append(ord(self.recevoir(bloque = True)))
-                    if sequence[2] in [0x32, 0x34]:
-                        sequence.append(ord(self.recevoir(bloque = True)))
+                if sequence.valeurs == CSI:
+                    sequence.ajoute(self.recevoir(bloque = True))
+                    if sequence.valeurs[-1] in [0x32, 0x34]:
+                        sequence.ajoute(self.recevoir(bloque = True))
             except Empty:
                 pass
 
-        return canon(sequence)
+        return sequence
 
     def appeler(self, contenu, attente):
         self.entree = Queue()
         self.envoyer(contenu)
         self.sortie.join()
 
-        retour = []
+        retour = Sequence()
         for i in range(0, attente):
             try:
-                retour.append(self.entree.get(block = True, timeout = 1))
+                retour.ajoute(self.entree.get(block = True, timeout = 1))
             except Empty:
                 break
 
@@ -155,25 +238,25 @@ class Minitel:
 
         if self.mode == 'TELEINFORMATIQUE' and mode == 'VIDEOTEX':
             retour = self.appeler([CSI, 0x3f, 0x7b], 2)
-            resultat = comparer(retour, [SEP, 0x5e])
+            resultat = retour.egale([SEP, 0x5e])
         elif self.mode == 'TELEINFORMATIQUE' and mode == 'MIXTE':
             retour = self.appeler([CSI, 0x3f, 0x7b], 2)
-            resultat = comparer(retour, [SEP, 0x5e])
+            resultat = retour.egale([SEP, 0x5e])
             if not resultat: return False
             retour = self.appeler([PRO2, MIXTE1], 2)
-            resultat = comparer(retour, [SEP, 0x70])
+            resultat = retour.egale([SEP, 0x70])
         elif self.mode == 'VIDEOTEX' and mode == 'MIXTE':
             retour = self.appeler([PRO2, MIXTE1], 2)
-            resultat = comparer(retour, [SEP, 0x70])
+            resultat = retour.egale([SEP, 0x70])
         elif self.mode == 'VIDEOTEX' and mode == 'TELEINFORMATIQUE':
             retour = self.appeler([PRO2, TELINFO], 4)
-            resultat = comparer(retour, [CSI, 0x3f, 0x7a])
+            resultat = retour.egale([CSI, 0x3f, 0x7a])
         elif self.mode == 'MIXTE' and mode == 'VIDEOTEX':
             retour = self.appeler([PRO2, MIXTE2], 2)
-            resultat = comparer(retour, [SEP, 0x71])
+            resultat = retour.egale([SEP, 0x71])
         elif self.mode == 'MIXTE' and mode == 'TELEINFORMATIQUE':
             retour = self.appeler([PRO2, TELINFO], 4)
-            resultat = comparer(retour, [CSI, 0x3f, 0x7a])
+            resultat = retour.egale([CSI, 0x3f, 0x7a])
 
         if resultat: self.mode = mode
 
@@ -195,15 +278,15 @@ class Minitel:
         retour = self.appeler([PRO1, ENQROM], 5)
 
         # Teste la validité de la réponse
-        if len(retour) != 5: return
-        if retour[0] != chr(SOH): return
-        if retour[4] != chr(EOT): return
+        if retour.longueur != 5: return
+        if retour.valeurs[0] != SOH: return
+        if retour.valeurs[4] != EOT: return
 
         # Extrait les caractères d’identification
-        constructeurMinitel = retour[1]
-        typeMinitel         = retour[2]
-        versionLogiciel     = retour[3]
-        identifiant         = retour[1] + retour[2] + retour[3]
+        constructeurMinitel = chr(retour.valeurs[1])
+        typeMinitel         = chr(retour.valeurs[2])
+        versionLogiciel     = chr(retour.valeurs[3])
+        identifiant         = constructeurMinitel + typeMinitel + versionLogiciel
 
         # Constructeurs
         constructeurs = {
@@ -257,11 +340,11 @@ class Minitel:
         # Détermine le mode écran dans lequel se trouve le Minitel
         retour = self.appeler([PRO1, STATUS_FONCTIONNEMENT], LONGUEUR_PRO2)
 
-        if len(retour) != LONGUEUR_PRO2:
+        if retour.longueur != LONGUEUR_PRO2:
             # Le Minitel est en mode Téléinformatique car il ne répond pas
             # à une commande protocole
             self.mode = 'TELEINFORMATIQUE'
-        elif ord(retour[3]) & 1 == 1:
+        elif retour.valeurs[3] & 1 == 1:
             # Le bit 1 du status fonctionnement indique le mode 80 colonnes
             self.mode = 'MIXTE'
         else:
@@ -282,7 +365,7 @@ class Minitel:
             retour = self.appeler([PRO1, STATUS_TERMINAL], LONGUEUR_PRO2)
 
             # Le Minitel doit renvoyer un acquittement PRO2
-            if len(retour) == LONGUEUR_PRO2:
+            if retour.longueur == LONGUEUR_PRO2:
                 self.vitesse = vitesse
                 return vitesse
 
@@ -300,7 +383,7 @@ class Minitel:
         retour = self.appeler([PRO2, PROG, vitesses[vitesse]], LONGUEUR_PRO2)
 
         # Le Minitel doit renvoyer un acquittement PRO2
-        if len(retour) == LONGUEUR_PRO2:
+        if retour.longueur == LONGUEUR_PRO2:
             # Si on peut lire un acquittement PRO2 avant d’avoir régler la
             # vitesse du port série, c’est que le Minitel ne peut pas utiliser
             # la vitesse demandée
@@ -324,7 +407,7 @@ class Minitel:
             commande = appel[0]
             longueur = appel[1]
             retour = self.appeler(commande, longueur)
-            if len(retour) != longueur: return False
+            if retour.longueur != longueur: return False
 
         return True
 
@@ -343,98 +426,6 @@ class Minitel:
         if couleur in couleurs: return couleurs[couleur]
 
         return None
-
-    def normaliserChaine(self, chaine):
-        if self.mode == 'VIDEOTEX':
-            chaine = chaine.replace(u'£', unhexlify('1923'))
-            chaine = chaine.replace(u'←', unhexlify('192C'))
-            chaine = chaine.replace(u'↑', unhexlify('192D'))
-            chaine = chaine.replace(u'→', unhexlify('192E'))
-            chaine = chaine.replace(u'↓', unhexlify('192F'))
-            chaine = chaine.replace(u'°', unhexlify('1930'))
-            chaine = chaine.replace(u'±', unhexlify('1931'))
-            chaine = chaine.replace(u'¼', unhexlify('193C'))
-            chaine = chaine.replace(u'½', unhexlify('193D'))
-            chaine = chaine.replace(u'¾', unhexlify('193E'))
-            chaine = chaine.replace(u'ç', unhexlify('194B') + u'c')
-            chaine = chaine.replace(u'’', unhexlify('194B') + u"'")
-
-            chaine = chaine.replace(u'à', unhexlify('1941') + u'a')
-            chaine = chaine.replace(u'á', unhexlify('1942') + u'a')
-            chaine = chaine.replace(u'â', unhexlify('1943') + u'a')
-            chaine = chaine.replace(u'ä', unhexlify('1948') + u'a')
-
-            chaine = chaine.replace(u'è', unhexlify('1941') + u'e')
-            chaine = chaine.replace(u'é', unhexlify('1942') + u'e')
-            chaine = chaine.replace(u'ê', unhexlify('1943') + u'e')
-            chaine = chaine.replace(u'ë', unhexlify('1948') + u'e')
-
-            chaine = chaine.replace(u'ì', unhexlify('1941') + u'i')
-            chaine = chaine.replace(u'í', unhexlify('1942') + u'i')
-            chaine = chaine.replace(u'î', unhexlify('1943') + u'i')
-            chaine = chaine.replace(u'ï', unhexlify('1948') + u'i')
-
-            chaine = chaine.replace(u'ò', unhexlify('1941') + u'o')
-            chaine = chaine.replace(u'ó', unhexlify('1942') + u'o')
-            chaine = chaine.replace(u'ô', unhexlify('1943') + u'o')
-            chaine = chaine.replace(u'ö', unhexlify('1948') + u'o')
-
-            chaine = chaine.replace(u'ù', unhexlify('1941') + u'u')
-            chaine = chaine.replace(u'ú', unhexlify('1942') + u'u')
-            chaine = chaine.replace(u'û', unhexlify('1943') + u'u')
-            chaine = chaine.replace(u'ü', unhexlify('1948') + u'u')
-
-            chaine = chaine.replace(u'Œ', unhexlify('196A'))
-            chaine = chaine.replace(u'œ', unhexlify('197A'))
-            chaine = chaine.replace(u'ß', unhexlify('197B'))
-            chaine = chaine.replace(u'β', unhexlify('197B'))
-        else:
-            chaine = chaine.replace(u'£', unhexlify('0E230F'))
-            chaine = chaine.replace(u'←', unhexlify('20'))
-            chaine = chaine.replace(u'↑', unhexlify('5E'))
-            chaine = chaine.replace(u'→', unhexlify('20'))
-            chaine = chaine.replace(u'↓', unhexlify('20'))
-            chaine = chaine.replace(u'°', unhexlify('0E5B0F'))
-            chaine = chaine.replace(u'±', unhexlify('20'))
-            chaine = chaine.replace(u'¼', unhexlify('20'))
-            chaine = chaine.replace(u'½', unhexlify('20'))
-            chaine = chaine.replace(u'¾', unhexlify('20'))
-            chaine = chaine.replace(u'ç', unhexlify('0E5C0F'))
-            chaine = chaine.replace(u'’', unhexlify('27'))
-            chaine = chaine.replace(u'`', unhexlify('60'))
-            chaine = chaine.replace(u'§', unhexlify('0E5D0F'))
-
-            chaine = chaine.replace(u'à', unhexlify('0E400F'))
-            chaine = chaine.replace(u'á', u'a')
-            chaine = chaine.replace(u'â', u'a')
-            chaine = chaine.replace(u'ä', u'a')
-
-            chaine = chaine.replace(u'è', unhexlify('0E7F0F'))
-            chaine = chaine.replace(u'é', unhexlify('0E7B0F'))
-            chaine = chaine.replace(u'ê', u'e')
-            chaine = chaine.replace(u'ë', u'e')
-
-            chaine = chaine.replace(u'ì', u'i')
-            chaine = chaine.replace(u'í', u'i')
-            chaine = chaine.replace(u'î', u'i')
-            chaine = chaine.replace(u'ï', u'i')
-
-            chaine = chaine.replace(u'ò', u'o')
-            chaine = chaine.replace(u'ó', u'o')
-            chaine = chaine.replace(u'ô', u'o')
-            chaine = chaine.replace(u'ö', u'o')
-
-            chaine = chaine.replace(u'ù', unhexlify('0E7C0F'))
-            chaine = chaine.replace(u'ú', u'u')
-            chaine = chaine.replace(u'û', u'u')
-            chaine = chaine.replace(u'ü', u'u')
-
-            chaine = chaine.replace(u'Œ', u'OE')
-            chaine = chaine.replace(u'œ', u'oe')
-            chaine = chaine.replace(u'ß', u'B')
-            chaine = chaine.replace(u'β', u'B')
-
-        return str(chaine)
 
     def couleur(self, caractere = None, fond = None):
         if caractere != None:
@@ -484,9 +475,9 @@ class Minitel:
         self.envoyer([ESC, 0x4c + (hauteur - 1) + (largeur - 1) * 2])
 
     def effet(self, soulignement = None, clignotement = None, inversion = None):
-        assert soulignement == True or soulignement == False or soulignement == None
-        assert clignotement == True or clignotement == False or clignotement == None
-        assert inversion == True or inversion == False or inverison == None
+        assert soulignement in [True, False, None]
+        assert clignotement in [True, False, None]
+        assert inversion in [True, False, None]
     
         soulignements = {True: [ESC, 0x5a], False: [ESC, 0x59], None: None}
         self.envoyer(soulignements[soulignement])
@@ -512,7 +503,7 @@ class Minitel:
         }
         retour = self.appeler(actifs[actif], LONGUEUR_PRO3)
         
-        return len(retour) == LONGUEUR_PRO3
+        return retour.longueur == LONGUEUR_PRO3
 
     def efface(self, portee = 'tout'):
         portees = {
@@ -544,6 +535,7 @@ class Minitel:
 
     def semigraphique(self, actif = True):
         assert actif == True or actif == False
+
         actifs = { True: SO, False: SI}
         self.envoyer(actifs[actif])
 

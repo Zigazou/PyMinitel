@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from .UI import UI
 from ..constantes import *
-from ..utils import comparer, canon
+from ..Sequence import Sequence
 
 class ChampTexte(UI):
     def __init__(self, minitel,x, y, longueurVisible, longueurTotale = None, valeur = u'', couleur = None):
@@ -28,41 +28,41 @@ class ChampTexte(UI):
         self.accent = None
 
     def gereTouche(self, sequence):
-        if comparer(sequence, GAUCHE):
+        if sequence.egale(GAUCHE):
             self.accent = None
             self.curseurGauche()
             return True        
-        elif comparer(sequence, DROITE):
+        elif sequence.egale(DROITE):
             self.accent = None
             self.curseurDroite()
             return True        
-        elif comparer(sequence, CORRECTION):
+        elif sequence.egale(CORRECTION):
             self.accent = None
             if self.curseurGauche():
                 self.valeur = self.valeur[0:self.curseurX] + self.valeur[self.curseurX + 1:]
                 self.affiche()
             return True        
-        elif (comparer(sequence, ACCENT_AIGU) or comparer(sequence, ACCENT_GRAVE) or
-             comparer(sequence, ACCENT_CIRCONFLEXE) or comparer(sequence, ACCENT_TREMA)):
+        elif (sequence.egale(ACCENT_AIGU) or sequence.egale(ACCENT_GRAVE) or
+             sequence.egale(ACCENT_CIRCONFLEXE) or sequence.egale(ACCENT_TREMA)):
             self.accent = sequence
             return True
-        elif comparer(sequence, [ACCENT_CEDILLE, 'c']):
+        elif sequence.egale([ACCENT_CEDILLE, 'c']):
             self.accent = None
             self.valeur = self.valeur[0:self.curseurX] + u'ç' + self.valeur[self.curseurX:]
             self.curseurDroite()
             self.affiche()
             return True
-        elif chr(sequence[0]) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ *$!:;,?./&(-_)=+\'@':
-            caractere = u'' + chr(sequence[0])
+        elif chr(sequence.valeurs[0]) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ *$!:;,?./&(-_)=+\'@':
+            caractere = u'' + chr(sequence.valeurs[0])
             if self.accent != None:
                 if caractere in 'aeiou':
-                    if comparer(self.accent, ACCENT_AIGU):
+                    if self.accent.egale(ACCENT_AIGU):
                         caractere = u'áéíóú'['aeiou'.index(caractere)]
-                    elif comparer(self.accent, ACCENT_GRAVE):
+                    elif self.accent.egale(ACCENT_GRAVE):
                         caractere = u'àèìòù'['aeiou'.index(caractere)]
-                    elif comparer(self.accent, ACCENT_CIRCONFLEXE):
+                    elif self.accent.egale(ACCENT_CIRCONFLEXE):
                         caractere = u'âêîôû'['aeiou'.index(caractere)]
-                    elif comparer(self.accent, ACCENT_TREMA):
+                    elif self.accent.egale(ACCENT_TREMA):
                         caractere = u'äëïöü'['aeiou'.index(caractere)]
 
                 self.accent = None

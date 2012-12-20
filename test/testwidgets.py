@@ -7,7 +7,6 @@ from minitel.ui.Conteneur import Conteneur
 from minitel.ui.Label import Label
 from minitel.ui.Menu import Menu
 from minitel.constantes import *
-from minitel.utils import canon, comparer
 
 # Initialisation du Minitel
 minitel = Minitel()

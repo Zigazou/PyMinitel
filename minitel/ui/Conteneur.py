@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from .UI import UI
-from ..utils import comparer, canon
+from ..Sequence import Sequence
 from ..constantes import *
 
 class Conteneur(UI):
@@ -19,6 +19,8 @@ class Conteneur(UI):
         UI.__init__(self, minitel, x, y, largeur, hauteur, couleur)
 
     def gereTouche(self, sequence):
+        assert isinstance(sequence, Sequence)
+
         # Aucun élement actif ? Donc rien à faire
         if self.elementActif == None: return False
 
@@ -32,14 +34,14 @@ class Conteneur(UI):
         # conteneur peut la traiter
 
         # La touche entrée permet de passer au champ suivant
-        if comparer(sequence, ENTREE):
+        if sequence.egale(ENTREE):
             self.elementActif.gereDepart()
             self.suivant()
             self.elementActif.gereArrivee()
             return True
 
         # La combinaison Majuscule + entrée permet de passer au champ précédent
-        if comparer(sequence, MAJ_ENTREE):
+        if sequence.egale(MAJ_ENTREE):
             self.elementActif.gereDepart()
             self.precedent()
             self.elementActif.gereArrivee()

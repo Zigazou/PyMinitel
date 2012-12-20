@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from .UI import UI
 from ..constantes import *
-from ..utils import comparer, canon
+from ..Sequence import Sequence
 
 class Menu(UI):
     def __init__(self, minitel, options, x, y, selection = 0, couleur = None):
@@ -23,7 +23,9 @@ class Menu(UI):
         self.activable = True
 
     def gereTouche(self, sequence):
-        if comparer(sequence, HAUT):
+        assert isinstance(sequence, Sequence)
+
+        if sequence.egale(HAUT):
             selection = self.optionPrecedente(self.selection)
             if selection == None:
                 self.minitel.bip()
@@ -32,7 +34,7 @@ class Menu(UI):
 
             return True
 
-        if comparer(sequence, BAS):
+        if sequence.egale(BAS):
             selection = self.optionSuivante(self.selection)
             if selection == None:
                 self.minitel.bip()

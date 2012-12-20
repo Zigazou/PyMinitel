@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from .UI import UI
-from ..constantes import *
-from ..utils import comparer, canon
+from ..Sequence import Sequence
 
 class Label(UI):
     def __init__(self, minitel, x, y, valeur = '', couleur = None):

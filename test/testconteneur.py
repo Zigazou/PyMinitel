@@ -32,10 +32,7 @@ conteneur.ajoute(labelPrenom)
 conteneur.ajoute(champPrenom)
 conteneur.affiche()
 
-while True:
-    sequence = minitel.recevoirSequence()
-
-    conteneur.gereTouche(sequence)
+conteneur.executer()
 
 minitel.close()
 

@@ -35,10 +35,7 @@ options = [
 menu = Menu(minitel, options, 5, 3)
 menu.affiche()
 
-while True:
-    sequence = minitel.recevoirSequence()
-
-    menu.gereTouche(sequence)
+menu.executer()
 
 minitel.close()
 

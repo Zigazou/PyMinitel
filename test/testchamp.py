@@ -4,7 +4,6 @@
 from minitel.Minitel import Minitel
 from minitel.ui.ChampTexte import ChampTexte
 from minitel.constantes import *
-from minitel.utils import canon, comparer
 
 minitel = Minitel()
 
@@ -21,10 +20,7 @@ champ = ChampTexte(minitel, 10, 10, 20, 60, 'Hello world')
 champ.affiche()
 champ.gereArrivee()
 
-while True:
-    sequence = minitel.recevoirSequence()
-
-    champ.gereTouche(sequence)
+champ.executer()
 
 minitel.close()
 
