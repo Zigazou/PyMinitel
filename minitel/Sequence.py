@@ -26,7 +26,27 @@ UNICODEVERSAUTRE = {
 }
 
 class Sequence:
+    """Une classe représentant une séquence de valeurs
+
+    Une Séquence est une suite de valeurs prêtes à être envoyées à un Minitel.
+    Ces valeurs respectent la norme ASCII.
+    """
     def __init__(self, valeur = None, standard = 'VIDEOTEX'):
+        """Constructeur de Sequence
+
+        :param valeur:
+            valeur à ajouter à la construction de l’objet. Si la valeur est à
+            None, aucune valeur n’est ajoutée
+        :type valeur:
+            une chaîne de caractères, un entier, une liste ou None
+
+        :param standard:
+            standard à utiliser pour la conversion unicode vers Minitel. Les
+            valeurs possibles sont VIDEOTEX, MIXTE et TELEINFORMATIQUE (la
+            casse est importante)
+        :type standard:
+            une chaîne de caractères
+        """
         assert valeur == None or isinstance(valeur, (list, int, str, unicode))
         assert standard in ['VIDEOTEX', 'MIXTE', 'TELEINFORMATIQUE']
 
@@ -37,29 +57,43 @@ class Sequence:
         if valeur != None: self.ajoute(valeur)
         
     def ajoute(self, valeur):
+        """Ajoute une valeur ou une séquence de valeurs
+
+        La valeur soumise est d’abord canonisée par la méthode canonise avant
+        d’être ajoutée à la séquence. Cela garantit que la séquence ne contient
+        que des entiers représentant des caractères de la norme ASCII.
+
+        :param valeur:
+            valeur à ajouter
+        :type valeur:
+            une chaîne de caractères, un entier ou une liste
+        """
         assert isinstance(valeur, (list, int, str, unicode))
+
         self.valeurs += self.canonise(valeur)
         self.longueur = len(self.valeurs)
 
     def canonise(self, valeur):
         """Canonise une séquence de caractères
 
-        Arguments:
-        valeur -- une chaîne de caractères, un entier ou une liste
+        Si une liste est soumise, quelle que soit sa profondeur, elle sera
+        remise à plat. Une liste peut donc contenir des chaînes de caractères,
+        des entiers ou des listes. Cette facilité permet la construction de
+        séquences de caractères plus aisée. Cela facilite également la
+        comparaison de deux séquences.
 
-        Retour:
-        Une liste de profondeur 1 d’entiers représentant des valeurs à la norme
-        ASCII.
+        :param valeur:
+            valeur à canoniser
+        :type valeur:
+            une chaîne de caractères, un entier ou une liste
 
-        Note:
-        Si une liste est soumise, quelle que soit sa profondeur, elle sera remise
-        à plat. Une liste peut donc contenir des chaînes de caractères, des entiers
-        ou des listes. Cette facilité permet la construction de séquences de
-        caractères plus aisée. Cela facilite également la comparaison de deux
-        séquences.
+        :returns:
+            Une liste de profondeur 1 d’entiers représentant des valeurs à la
+            norme ASCII.
 
-        Exemple:
-        canon(['dd', 32, ['dd', 32]]) retournera [100, 100, 32, 100, 100, 32]
+        Exemple::
+            canonise(['dd', 32, ['dd', 32]]) retournera
+            [100, 100, 32, 100, 100, 32]
         """
         assert isinstance(valeur, (list, int, str, unicode))
 
@@ -92,6 +126,17 @@ class Sequence:
         return canonise
 
     def unicodeVersMinitel(self, caractere):
+        """Convertit un caractère unicode en son équivalent Minitel
+
+        :param caractere:
+            caractère à convertir
+        :type valeur:
+            une chaîne de caractères unicode
+
+        :returns:
+            une chaîne de caractères contenant une suite de caractères à
+            destination du Minitel.
+        """
         assert isinstance(caractere, unicode) and len(caractere) == 1
 
         if self.standard == 'VIDEOTEX':
@@ -104,6 +149,19 @@ class Sequence:
         return unicodedata.normalize('NFKD', caractere).encode('ascii', 'replace')
 
     def egale(self, sequence):
+        """Teste l’égalité de 2 séquences
+
+        :param sequence:
+            séquence à comparer. Si la séquence n’est pas un objet Sequence,
+            elle est d’abord convertie en objet Sequence afin de canoniser ses
+            valeurs.
+        :type sequence:
+            un objet Sequence, une liste, un entier, une chaîne de caractères
+            ou une chaîne unicode
+
+        :returns:
+            True si les 2 séquences sont égales, False sinon
+        """
         assert isinstance(sequence, (Sequence, list, int, str, unicode))
 
         # Si la séquence à comparer n’est pas de la classe Sequence, alors

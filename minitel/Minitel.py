@@ -5,14 +5,14 @@ from serial import Serial      # Liaison physique avec le Minitel
 from threading import Thread   # Threads pour l’émission/réception
 from Queue import Queue, Empty # Files de caractères pour l’émission/réception
 
-from binascii import unhexlify # Pour créer des chaînes binaires depuis une
-                               # chaîne hexa
-
 from constantes import *       # Constantes en rapport avec le Minitel
 from Sequence import Sequence  # Gestion des séquences de caractères
 
 class Minitel:
     """Une classe de pilotage du Minitel via un port série
+
+    Présentation
+    ============
 
     La classe Minitel permet d’envoyer et de recevoir des séquences de
     caractères vers et depuis un Minitel dans un programme écrit en Python.
@@ -39,15 +39,31 @@ class Minitel:
     Compte tenu de son fonctionnement en threads, le programme principal
     utilisant cette classe n’a pas à se soucier d’être disponible pour recevoir
     les séquences de caractères envoyées par le Minitel.
+
+    Démarrage rapide
+    ================
+
+    Le cycle de vie d’un objet Minitel consiste en la création, la
+    détermination de la vitesse du Minitel, de ses capacités, l’utilisation
+    du Minitel par l’application et la libération des ressources::
+        
+        from minitel.Minitel import Minitel
+
+        minitel = Minitel()
+
+        minitel.devinerVitesse()
+        minitel.identifier()
+
+        # ...
+        # Utilisation de l’objet minitel
+        # ...
+
+        minitel.close()
+
     """
     def __init__(self, peripherique = '/dev/ttyUSB0'):
         """Constructeur de Minitel
 
-        Arguments:
-        peripherique -- une chaîne de caractères identifiant un périphérique.
-                        Par défaut, le périphérique est /dev/ttyUSB0
-
-        Note:
         La connexion série est établie selon le standard de base du Minitel.
         À l’allumage le Minitel est configuré à 1200 bps, 7 bits, parité paire,
         mode Vidéotex.
@@ -55,6 +71,13 @@ class Minitel:
         Cela peut ne pas correspondre à la configuration réelle du Minitel au
         moment de l’exécution. Cela n’est toutefois pas un problème car la
         connexion série peut être reconfigurée à tout moment.
+
+        :param peripherique:
+            Le périphérique sur lequel est connecté le Minitel.Par défaut, le
+            périphérique est /dev/ttyUSB0
+        :type peripherique:
+            String
+    
         """
         assert isinstance(peripherique, str)
 
@@ -168,10 +191,11 @@ class Minitel:
 
         Envoie une séquence de caractère en direction du Minitel.
 
-        Arguments:
-        contenu -- Une séquence de caractères interprétable par la classe
-                   Sequence (un objet Sequence, une chaîne de caractères ou
-                   unicode, une liste, un entier).
+        :param contenu:
+            Une séquence de caractères interprétable par la classe Sequence.
+        :type contenu:
+            un objet Sequence, une chaîne de caractères ou unicode, une liste,
+            un entier
         """
         # Convertit toute entrée en objet Sequence
         if not isinstance(contenu, Sequence): contenu = Sequence(contenu)
@@ -185,12 +209,18 @@ class Minitel:
 
         Retourne un caractère présent dans la file d’attente de réception.
 
-        Arguments:
-        bloque -- True pour attendre un caractère s’il n’y en a pas dans la
-                  file d’attente de réception. False pour ne pas attendre et
-                  retourner immédiatement.
-        attente -- attente en secondes, valeurs en dessous de la seconde
-                   acceptées. Valide uniquement en mode bloque = True
+        :param bloque:
+            True pour attendre un caractère s’il n’y en a pas dans la
+            file d’attente de réception. False pour ne pas attendre et
+            retourner immédiatement.
+        :type bloque:
+            un booléen
+
+        :param attente:
+            attente en secondes, valeurs en dessous de la seconde
+            acceptées. Valide uniquement en mode bloque = True
+        :type attente:
+            un entier
         """
         assert bloque in [True, False]
         assert isinstance(attente, float) or attente == None
@@ -211,6 +241,9 @@ class Minitel:
 
         C’est cette méthode qui doit être utilisée plutôt que la méthode
         recevoir lorsqu’on dialogue avec le Minitel.
+
+        :returns:
+            un objet Sequence
         """
         # Crée une séquence
         sequence = Sequence()
@@ -257,12 +290,22 @@ class Minitel:
         Avant de lancer la commande, la méthode vide la file d’attente en
         réception.
 
-        Arguments:
-        contenu -- Une séquence de caractères interprétable par la classe
-                   Sequence (un objet Sequence, une chaîne de caractères ou
-                   unicode, une liste, un entier).
-        attente -- Nombre de caractères attendu de la part du Minitel en
-                   réponse à notre envoi.
+        :param contenu:
+            Une séquence de caractères interprétable par la classe
+            Sequence
+        :type contenu:
+            un objet Sequence, une chaîne de caractères, une chaîne unicode
+            ou un entier
+
+        :param attente:
+            Nombre de caractères attendu de la part du Minitel en
+            réponse à notre envoi.
+        :type attente:
+            un entier
+
+        :returns:
+            un objet Sequence contenant la réponse du Minitel à la commande
+            envoyée.
         """
         assert isinstance(attente, int)
 
@@ -299,12 +342,14 @@ class Minitel:
         La méthode definirMode prend en compte le mode courant du Minitel pour
         émettre la bonne commande.
 
-        Si le changement de mode n’a pu avoir lieu, la méthode retourne False,
-        sinon True.
+        :param mode:
+            une valeur parmi les suivantes : VIDEOTEX,
+            MIXTE ou TELEINFORMATIQUE (la casse est importante).
+        :type mode:
+            une chaîne de caractères
 
-        Arguments:
-        mode -- Une chaîne de caractère pouvant prendre 3 valeurs : VIDEOTEX,
-                MIXTE ou TELEINFORMATIQUE (la casse est importante).
+        :returns:
+            False si le changement de mode n’a pu avoir lieu, True sinon.
         """
         assert isinstance(mode, str)
 
@@ -358,18 +403,19 @@ class Minitel:
 
         Aucune valeur n’est retournée. À la place, l’attribut capacite de
         l’objet contient un dictionnaire de valeurs renseignant sur les
-        capacités du Minite :
-        capacite['nom'] -- Nom du Minitel (ex. Minitel 2)
-        capacite['retournable'] -- Le Minitel peut-il être retourné et servir
-                                   de modem ? (True ou False)
-        capacite['clavier'] -- Clavier (None, ABCD ou Azerty)
-        capacite['vitesse'] -- Vitesse maxi en bps (1200, 4800 ou 9600)
-        capacite['constructeur'] -- Nom du constructeur (ex. Philips)
-        capacite['80colonnes'] -- Le Minitel peut-il afficher 80 colonnes ?
-                                  (True ou False)
-        capacite['caracteres'] -- Peut-on redéfinir des caractères ? (True ou
-                                  False)
-        capacite['version'] -- Version du logiciel (une lettre)
+        capacités du Minitel :
+
+        - capacite['nom'] -- Nom du Minitel (ex. Minitel 2)
+        - capacite['retournable'] -- Le Minitel peut-il être retourné et
+          servir de modem ? (True ou False)
+        - capacite['clavier'] -- Clavier (None, ABCD ou Azerty)
+        - capacite['vitesse'] -- Vitesse maxi en bps (1200, 4800 ou 9600)
+        - capacite['constructeur'] -- Nom du constructeur (ex. Philips)
+        - capacite['80colonnes'] -- Le Minitel peut-il afficher 80
+          colonnes ? (True ou False)
+        - capacite['caracteres'] -- Peut-on redéfinir des caractères ?
+          (True ou False)
+        - capacite['version'] -- Version du logiciel (une lettre)
         """
         self.capacite = {
             'nom': u'Minitel inconnu',
@@ -474,8 +520,9 @@ class Minitel:
         En cas de détection, la vitesse est enregistré dans l’attribut vitesse
         de l’objet.
 
-        La méthode retourne la vitesse en bits par seconde ou -1 si elle n’a
-        pas pu être déterminée.
+        :returns:
+            La méthode retourne la vitesse en bits par seconde ou -1 si elle
+            n’a pas pu être déterminée.
         """
         # Vitesses possibles jusqu’au Minitel 2
         vitesses = [9600, 4800, 1200, 300]
@@ -511,10 +558,15 @@ class Minitel:
         et, si celui-ci l’accepte, configure le port série à la nouvelle
         vitesse.
 
-        Arguments:
-        vitesse -- Entier indiquant la vitesse en bits par seconde. Les valeurs
-                   acceptées sont 300, 1200, 4800 et 9600. La valeur 9600 n’est
-                   autorisée qu’à partir du Minitel 2
+        :param vitesse:
+            vitesse en bits par seconde. Les valeurs acceptées sont 300, 1200,
+            4800 et 9600. La valeur 9600 n’est autorisée qu’à partir du Minitel
+            2
+        :type vitesse:
+            un entier
+
+        :returns:
+            True si la vitesse a pu être programmée, False sinon.
         """
         assert isinstance(vitesse, int)
 
@@ -553,14 +605,23 @@ class Minitel:
         correctement été traitées par le Minitel. Dès qu’une commande échoue,
         la méthode arrête immédiatement et retourne False.
 
-        Arguments:
-        etendu -- Booléen indiquant si le clavier fonctionne en mode étendu
-                  (True) ou en mode normal (False)
-        curseur -- Booléen indiquant si les touches du curseur doivent être
-                   gérées (True) ou pas (False)
-        minuscule -- Booléen indiquant si l’appui sur une touche alphabétique
-                     sans appui simultané sur la touche Maj/Shift génère une
-                     minuscule (True) ou une majuscule (False)
+        :param etendu:
+            True pour un clavier en mode étendu, False pour un clavier en mode
+            normal
+        :type etendu:
+            un booléen
+
+        :param curseur:
+            True si les touches du curseur doivent être gérées, False sinon
+        :type curseur:
+            un booléen
+
+        :param minuscule:
+            True si l’appui sur une touche alphabétique sans appui simultané
+            sur la touche Maj/Shift doit générer une minuscule, False s’il
+            doit générer une majuscule.
+        :type minuscule:
+            un booléen
         """
         assert etendu in [True, False]
         assert curseur in [True, False]
@@ -596,12 +657,15 @@ class Minitel:
         gris, cette méthode retourne le numéro de la couleur correspondante
         pour le Minitel.
 
-        Si la couleur n’est pas valide, la méthode retourne None.
+        :param couleur:
+            Les valeurs acceptées sont noir, rouge, vert, jaune, bleu,
+            magenta, cyan, blanc, et les entiers de 0 (noir) à 7 (blanc)
+        :type couleur:
+            une chaîne de caractères ou un entier
 
-        Arguments:
-        couleur -- Chaîne de caractères ou entier indiquant la couleur. Les
-                   valeurs acceptées sont noir, rouge, vert, jaune, bleu,
-                   magenta, cyan, blanc, et les entiers de 0 (noir) à 7 (blanc)
+        :returns:
+            Le numéro de la couleur correspondante sur le Minitel ou None si
+            la couleur demandée n’est pas valide.
         """
         assert isinstance(couleur, (str, int))
 
@@ -637,9 +701,15 @@ class Minitel:
 
         Si une couleur n’est pas valide, elle est simplement ignorée.
 
-        Arguments:
-        caractere -- Chaîne de caractères ou entier indiquant la couleur.
-        fond -- Chaîne de caractères ou entier indiquant la couleur.
+        :param caractere:
+            couleur à affecter à l’avant-plan.
+        :type caractere:
+            une chaîne de caractères, un entier ou None
+
+        :param fond:
+            couleur à affecter à l’arrière-plan.
+        :type fond:
+            une chaîne de caractères, un entier ou None
         """
         assert isinstance(caractere, (str, int)) or caractere == None
         assert isinstance(fond, (str, int)) or fond == None
@@ -669,12 +739,22 @@ class Minitel:
         correspond à la ligne d’état et possède un fonctionnement différent
         des autres lignes.
 
-        Arguments:
-        colonne -- Entier indiquant la colonne
-        ligne -- Entier indiquant la ligne
-        relatif -- Booléen indiquant si les coordonnées fournies sont relatives
-                   (True) par rapport à la position actuelle du curseur ou si
-                   elles sont absolues (False, valeur par défaut)
+        :param colonne:
+            colonne à laquelle positionner le curseur
+        :type colonne:
+            un entier relatif
+
+        :param ligne:
+            ligne à laquelle positionner le curseur
+        :type ligne:
+            un entier relatif
+
+        :param relatif:
+            indique si les coordonnées fournies sont relatives
+            (True) par rapport à la position actuelle du curseur ou si
+            elles sont absolues (False, valeur par défaut)
+        :type relatif:
+            un booléen
         """
         assert isinstance(colonne, int)
         assert isinstance(ligne, int)
@@ -717,6 +797,7 @@ class Minitel:
 
         Le Minitel est capable d’agrandir les caractères. Quatres tailles sont
         disponibles :
+
         - largeur = 1, hauteur = 1: taille normale
         - largeur = 2, hauteur = 1: caractères deux fois plus larges
         - largeur = 1, hauteur = 2: caractères deux fois plus hauts
@@ -728,9 +809,15 @@ class Minitel:
         Le positionnement avec des caractères deux fois plus hauts se fait par
         rapport au bas du caractère.
 
-        Arguments:
-        largeur -- Entier indiquant le coefficient multiplicateur de largeur
-        hauteur -- Entier indiquant le coefficient multiplicateur de hauteur
+        :param largeur:
+            coefficiant multiplicateur de largeur (1 ou 2)
+        :type largeur:
+            un entier
+
+        :param hauteur:
+            coefficient multiplicateur de hauteur (1 ou 2)
+        :type hauteur:
+            un entier
         """
         assert largeur in [1, 2]
         assert hauteur in [1, 2]
@@ -743,13 +830,23 @@ class Minitel:
         Le Minitel dispose de 3 effets sur les caractères : soulignement,
         clignotement et inversion vidéo.
 
-        Arguments:
-        soulignement -- Booléen indiquant s’il faut activer le soulignement
-                        (True) ou le désactiver (False)
-        clignotement -- Booléen indiquant s’il faut activer le clignotement
-                        (True) ou le désactiver (False)
-        inversion -- Booléen indiquant s’il faut activer l’inverson vidéo
-                     (True) ou la désactiver (False)
+        :param soulignement:
+            indique s’il faut activer le soulignement (True) ou le désactiver
+            (False)
+        :type soulignement:
+            un booléen ou None
+
+        :param clignotement:
+            indique s’il faut activer le clignotement (True) ou le désactiver
+            (False)
+        :type clignotement:
+            un booléen ou None
+
+        :param inversion:
+            indique s’il faut activer l’inverson vidéo (True) ou la désactiver
+            (False)
+        :type inversion:
+            un booléen ou None
         """
         assert soulignement in [True, False, None]
         assert clignotement in [True, False, None]
@@ -773,14 +870,16 @@ class Minitel:
         Le Minitel peut afficher un curseur clignotant à la position
         d’affichage des prochains caractères.
 
-        Il est intéressant de la désactiver quand l’ordinateur doit envoyer
+        Il est intéressant de le désactiver quand l’ordinateur doit envoyer
         de longues séquences de caractères car le Minitel va chercher à
         afficher le curseur pour chaque caractère affiché, générant un effet
         peu agréable.
 
-        Arguments:
-        visible -- Booléen indiquant s’il faut activer le curseur (True) ou le
-                   rendre invisible (False)
+        :param visible:
+            indique s’il faut activer le curseur (True) ou le rendre invisible
+            (False)
+        :type visible:
+            un booléen
         """
         assert visible in [True, False]
 
@@ -802,9 +901,13 @@ class Minitel:
         La méthode retourne True si la commande a bien été traitée par le
         Minitel, False sinon.
 
-        Arguments:
-        actif -- Booléen indiquant s’il faut activer l’écho (True) ou le
-                 désactiver (False)
+        :param actif:
+            indique s’il faut activer l’écho (True) ou le désactiver (False)
+        :type actif:
+            un booléen
+
+        :returns:
+            True si la commande a été acceptée par le Minitel, False sinon.
         """
         assert actif in [True, False]
 
@@ -820,17 +923,19 @@ class Minitel:
         """Efface tout ou partie de l’écran
 
         Cette méthode permet d’effacer :
-        - tout l’écran ('tout'),
-        - du curseur jusqu’à la fin de la ligne ('finligne'),
-        - du curseur jusqu’au bas de l’écran ('finecran'),
-        - du début de l’écran jusqu’au curseur ('debutecran'),
-        - du début de la ligne jusqu’au curseur ('debutligne'),
-        - la ligne entière ('ligne').
 
-        Arguments:
-        portee -- Chaîne de caractères indiquant la portée de l’effacement. Les
-                  valeurs possibles sont tout, finligne, finecran, debutecran,
-                  debutligne et ligne
+
+        :param portee:
+            indique la portée de l’effacement :
+
+            - tout l’écran ('tout'),
+            - du curseur jusqu’à la fin de la ligne ('finligne'),
+            - du curseur jusqu’au bas de l’écran ('finecran'),
+            - du début de l’écran jusqu’au curseur ('debutecran'),
+            - du début de la ligne jusqu’au curseur ('debutligne'),
+            - la ligne entière ('ligne').
+        :type porte:
+            une chaîne de caractères
         """
         portees = {
             'tout': [FF],
@@ -849,9 +954,15 @@ class Minitel:
     def repeter(self, caractere, longueur):
         """Répéter un caractère
 
-        Arguments:
-        caractere -- Caractère à répéter
-        longueur -- Entier donnant le nombre de fois où le caractère est répété
+        :param caractere:
+            caractère à répéter
+        :type caractere:
+            une chaîne de caractères
+
+        :param longueur:
+            le nombre de fois où le caractère est répété
+        :type longueur:
+            un entier positif
         """
         assert isinstance(longueur, int)
         assert longueur > 0 and longueur <= 40
@@ -879,7 +990,14 @@ class Minitel:
 
         En supprimant des caractères après le curseur, le Minitel ramène
         les derniers caractères contenus sur la ligne.
+
+        :param nombre:
+            nombre de caractères à supprimer
+        :type nombre:
+            un entier positif
         """
+        assert isinstance(nombre, int) and nombre >= 0
+
         self.envoyer([CSI, str(nombre), 'M'])
 
     def insere(self, nombre):
@@ -887,11 +1005,24 @@ class Minitel:
 
         En insérant des caractères après le curseur, le Minitel pousse les
         derniers caractères contenus sur la ligne à droite.
+
+        :param nombre:
+            nombre de caractères à insérer
+        :type nombre:
+            un entier positif
         """
+        assert isinstance(nombre, int) and nombre >= 0
+
         self.envoyer([CSI, str(nombre), 'L'])
 
     def semigraphique(self, actif = True):
         """Passe en mode semi-graphique ou en mode alphabétique
+
+        :param actif:
+            True pour passer en mode semi-graphique, False pour revenir au
+            mode normal
+        :type actif:
+            un booléen
         """
         assert actif in [True, False]
 
@@ -904,34 +1035,44 @@ class Minitel:
         À partir du Minitel 2, il est possible de redéfinir des caractères.
         Chaque caractère est dessiné à partir d’une matrice 8×10 pixels.
 
-        Note:
         Les dessins des caractères sont données par une suite de 0 et de 1 dans
         une chaîne de caractères. Tout autre caractère est purement et
         simplement ignoré. Cette particularité permet de dessiner les
         caractères depuis un éditeur de texte standard et d’ajouter des
         commentaires.
         
-        Ex::
-        11111111
-        10000001
-        10000001
-        10000001
-        10000001 Ceci est un rectangle !
-        10000001
-        10000001
-        10000001
-        10000001
-        11111111
+        Exemple::
+
+            11111111
+            10000001
+            10000001
+            10000001
+            10000001 Ceci est un rectangle !
+            10000001
+            10000001
+            10000001
+            10000001
+            11111111
 
         Le Minitel n’insère aucun pixel de séparation entre les caractères,
         il faut donc prendre cela en compte et les inclure dans vos dessins.
 
-        Arguments:
-        depuis -- Caractère à partir duquel redéfinir
-        dessins -- Chaîne de caractères représentant les dessins des caractères
-                   à redéfinir
-        jeu -- Chaîne de caractères désignant la palette de caractères à
-               modifier (G0 ou G1)
+        Une fois le ou les caractères redéfinis, le jeu de caractères spécial
+        les contenant est automatiquement sélectionné et ils peuvent donc
+        être utilisés immédiatement.
+
+        :param depuis:
+            caractère à partir duquel redéfinir
+        :type depuis:
+            une chaîne de caractères
+        :param dessins:
+            dessins des caractères à redéfinir
+        :type dessins:
+            une chaîne de caractères
+        :param jeu:
+            palette de caractères à modifier (G0 ou G1)
+        :type jeu:
+            une chaîne de caractères
         """
         assert jeu == 'G0' or jeu == 'G1'
         assert isinstance(depuis, str) and len(depuis) == 1
