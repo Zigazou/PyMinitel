@@ -4,12 +4,69 @@
 from ..Minitel import Minitel
 
 class UI:
+    """Classe de base pour la création d’élément d’interface utilisateur
+
+    Cette classe fournit un cadre de fonctionnement pour la création d’autres
+    classes pour réaliser une interface utilisateur.
+
+    Elle instaure les attributs suivants :
+
+    - x et y : coordonnées haut gauche de l’élément
+    - largeur et hauteur : dimensions en caractères de l’élément
+    - minitel : un objet Minitel utilisé pour l’affichage de l’élément
+    - couleur : couleur d’avant-plan/des caractères
+    - activable : booléen indiquant si l’élément peut recevoir les événements
+      du Minitel (clavier)
+
+    Les classes dérivées de UI doivent implémenter les méthodes suivantes :
+    - __init__ : initialisation de l’objet
+    - affiche : affichage de l’objet
+    - efface : effacement de l’objet
+    - gereTouche : gestion de l’appui d’une touche (si l’élément est activable)
+    - gereArrivee : gestion de l’activation de l’élément
+    - gereDepart : gestion de la désactivation de l’élément
+
+    """
     def __init__(self, minitel, x, y, largeur, hauteur, couleur):
+        """Constructeur
+
+        :param minitel:
+            L’objet auquel envoyer les commandes et recevoir les appuis de
+            touche.
+        :type minitel:
+            un objet Minitel
+
+        :param x:
+            Coordonnée x de l’élément
+        :type x:
+            un entier
+
+        :param y:
+            Coordonnée y de l’élément
+        :type y:
+            un entier
+        
+        :param largeur:
+            Largeur de l’élément en caractères
+        :type largeur:
+            un entier
+        
+        :param hauteur:
+            Hauteur de l’élément en caractères
+        :type hauteur:
+            un entier
+        
+        :param couleur:
+            Couleur de l’élément
+        :type couleur:
+            un entier ou une chaîne de caractères
+        """
         assert isinstance(minitel, Minitel)
-        assert x > 0 and x <= 40
+        assert x > 0 and x <= 80
         assert y > 0 and y <= 24
-        assert largeur > 0 and largeur + x - 1 <= 40
-        assert hauteur > 0 and hauteur + y - 1 <= 40
+        assert largeur > 0 and largeur + x - 1 <= 80
+        assert hauteur > 0 and hauteur + y - 1 <= 80
+        assert isinstance(couleur, (int, str))
 
         # Un élément UI est toujours rattaché à un objet Minitel
         self.minitel = minitel
@@ -26,17 +83,68 @@ class UI:
         self.activable = False
 
     def executer(self):
+        """Boucle d’exécution d’un élément
+
+        L’appel de cette méthode permet de lancer une boucle infinie qui va
+        gérer l’appui des touches (méthode gereTouche) provenant du Minitel.
+        Dès qu’une touche n’est pas gérée par l’élément, la boucle s’arrête.
+        """
         while self.gereTouche(self.minitel.recevoirSequence()): pass
 
-    def affiche(self): pass
+    def affiche(self):
+        """Affiche l’élément
+
+        Cette méthode est appelée dès que l’on veut afficher l’élément.
+        """
+        pass
 
     def efface(self):
+        """Efface l’élément
+
+        Cette méthode est appelée dès que l’on veut effacer l’élément. Par
+        défaut elle affiche un rectangle contenant des espaces à la place de
+        l’élément. Elle peut être surchargée pour obtenir une gestion plus
+        poussée de l’affichage.
+        """
         for ligne in range(self.y, self.y + self.hauteur):
             self.minitel.position(self.x, ligne)
             self.minitel.repeter(' ', self.largeur)
 
-    def gereTouche(self, sequence): return False
+    def gereTouche(self, sequence):
+        """Gère une touche
 
-    def gereArrivee(self): pass
-    def gereDepart(self): pass
+        Cette méthode est appelée automatiquement par la méthode executer dès
+        qu’une séquence est disponible au traitement.
+
+        Pour tout élément interactif, cette méthode doit être surchargée car
+        elle ne traite aucune touche par défaut et renvoie donc False.
+
+        :param sequence:
+            la séquence de caractères en provenance du Minitel que l’élément
+            doit traiter.
+        :type sequence:
+            un objet Sequence
+
+        :returns:
+            un booléen indiquant si la touche a été prise en charge par
+            l’élément (True) ou si l’élément n’a pas pu traitée la touche
+            (False).
+        """
+        return False
+
+    def gereArrivee(self):
+        """Gère l’activation de l’élément
+
+        Cette méthode est appelée lorsque l’élément est activé (lorsqu’il
+        reçoit les touches du clavier).
+        """
+        pass
+
+    def gereDepart(self):
+        """Gère la désactivation de l’élément
+
+        Cette méthode est appelée lorsque l’élément est désactivé (lorsqu’il ne
+        reçoit plus les touches du clavier).
+        """
+        pass
 
