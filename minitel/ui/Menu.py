@@ -1,45 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from .UI import UI
-from ..constantes import *
+from ..constantes import HAUT, BAS
 from ..Sequence import Sequence
 
 class Menu(UI):
-    def __init__(self, minitel, options, x, y, selection = 0, couleur = None):
+    def __init__(self, minitel, options, posx, posy, selection = 0,
+                 couleur = None):
         self.options = options
         self.selection = selection
 
         # Détermine la largeur du menu
-        self.largeurLigne = 0
+        self.largeur_ligne = 0
         for option in self.options:
-            self.largeurLigne = max(self.largeurLigne, len(option))
+            self.largeur_ligne = max(self.largeur_ligne, len(option))
 
         # Détermine la largeur et la hauteur de la zone d’affichage du menu
-        largeur = self.largeurLigne + 2
+        largeur = self.largeur_ligne + 2
         hauteur = len(self.options) + 2
 
-        UI.__init__(self, minitel, x, y, largeur, hauteur, couleur)
+        UI.__init__(self, minitel, posx, posy, largeur, hauteur, couleur)
 
         self.activable = True
 
-    def gereTouche(self, sequence):
+    def gere_touche(self, sequence):
         assert isinstance(sequence, Sequence)
 
         if sequence.egale(HAUT):
-            selection = self.optionPrecedente(self.selection)
+            selection = self.option_precedente(self.selection)
             if selection == None:
                 self.minitel.bip()
             else:
-                self.changeSelection(selection)
+                self.change_selection(selection)
 
             return True
 
         if sequence.egale(BAS):
-            selection = self.optionSuivante(self.selection)
+            selection = self.option_suivante(self.selection)
             if selection == None:
                 self.minitel.bip()
             else:
-                self.changeSelection(selection)
+                self.change_selection(selection)
 
             return True
 
@@ -47,52 +48,72 @@ class Menu(UI):
 
     def affiche(self):
         i = 0
-        self.minitel.position(self.x + 1, self.y)
-        if self.couleur != None: self.minitel.couleur(caractere = self.couleur)
-        self.minitel.repeter(0x5f, self.largeurLigne)
+        self.minitel.position(self.posx + 1, self.posy)
 
-        for option in self.options:
-            if self.couleur != None: self.minitel.couleur(caractere = self.couleur)
-            self.afficheLigne(i, self.selection == i)
+        if self.couleur != None:
+            self.minitel.couleur(caractere = self.couleur)
+
+        self.minitel.repeter(0x5f, self.largeur_ligne)
+
+        for _ in self.options:
+            if self.couleur != None:
+                self.minitel.couleur(caractere = self.couleur)
+
+            self.affiche_ligne(i, self.selection == i)
             i += 1
 
-        self.minitel.position(self.x + 1, self.y + len(self.options) + 1)
-        if self.couleur != None: self.minitel.couleur(caractere = self.couleur)
-        self.minitel.repeter(0x7e, self.largeurLigne)
+        self.minitel.position(self.posx + 1, self.posy + len(self.options) + 1)
 
-    def afficheLigne(self, selection, etat = False):
-        self.minitel.position(self.x, self.y + selection + 1)
-        if self.couleur != None: self.minitel.couleur(caractere = self.couleur)
+        if self.couleur != None:
+            self.minitel.couleur(caractere = self.couleur)
+
+        self.minitel.repeter(0x7e, self.largeur_ligne)
+
+    def affiche_ligne(self, selection, etat = False):
+        self.minitel.position(self.posx, self.posy + selection + 1)
+
+        if self.couleur != None:
+            self.minitel.couleur(caractere = self.couleur)
+
         self.minitel.envoyer([0x7d])
 
         if self.options[selection] == u'-':
-            self.minitel.repeter(0x60, self.largeurLigne)
+            self.minitel.repeter(0x60, self.largeur_ligne)
         else:
-            if etat: self.minitel.effet(inversion = True)
-            self.minitel.envoyer(self.options[selection].ljust(self.largeurLigne))
+            if etat:
+                self.minitel.effet(inversion = True)
 
-        if etat: self.minitel.effet(inversion = False)
+            option = self.options[selection]
+            self.minitel.envoyer(option.ljust(self.largeur_ligne))
+
+        if etat:
+            self.minitel.effet(inversion = False)
 
         self.minitel.envoyer([0x7b])
         
-    def changeSelection(self, selection):
-        if self.selection == selection: return
-        if selection < 0 or selection >= len(self.options): return
+    def change_selection(self, selection):
+        if self.selection == selection:
+            return
 
-        self.afficheLigne(self.selection, False)
-        self.afficheLigne(selection, True)
+        if selection < 0 or selection >= len(self.options):
+            return
+
+        self.affiche_ligne(self.selection, False)
+        self.affiche_ligne(selection, True)
 
         self.selection = selection
 
-    def optionSuivante(self, numero):
+    def option_suivante(self, numero):
         for i in range(numero + 1, len(self.options)):
-            if self.options[i] != u'-': return i
+            if self.options[i] != u'-':
+                return i
 
         return None
     
-    def optionPrecedente(self, numero):
+    def option_precedente(self, numero):
         for i in range(numero - 1, -1, -1):
-            if self.options[i] != u'-': return i
+            if self.options[i] != u'-':
+                return i
 
         return None
 

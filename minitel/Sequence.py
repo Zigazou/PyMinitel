@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Sequence est un module permettant de gérer les séquences de caractères
+pouvant être envoyées à un Minitel.
 
-import unicodedata
+"""
+
+from unicodedata import normalize
 from binascii import unhexlify
 
 # Tables de conversion des caractères spéciaux
@@ -54,7 +58,8 @@ class Sequence:
         self.longueur = 0
         self.standard = standard
 
-        if valeur != None: self.ajoute(valeur)
+        if valeur != None:
+            self.ajoute(valeur)
         
     def ajoute(self, valeur):
         """Ajoute une valeur ou une séquence de valeurs
@@ -98,7 +103,8 @@ class Sequence:
         assert isinstance(valeur, (list, int, str, unicode))
 
         # Si la valeur est juste un entier, on le retient dans une liste
-        if isinstance(valeur, int): return [valeur]
+        if isinstance(valeur, int):
+            return [valeur]
 
         # À ce point, le paramètre contient soit une chaîne de caractères, soit
         # une liste. L’une ou l’autre est parcourable par une boucle for ... in
@@ -114,7 +120,7 @@ class Sequence:
                 # Cette boucle traite 2 cas : celui ou liste est une chaîne
                 # unicode et celui ou element est une chaîne de caractères
                 for caractere in element:
-                    for ascii in self.unicodeVersMinitel(caractere):
+                    for ascii in self.unicode_vers_minitel(caractere):
                         canonise.append(ord(ascii))
             elif isinstance(element, int):
                 # Un entier a juste besoin d’être ajouté à la liste finale
@@ -125,7 +131,7 @@ class Sequence:
 
         return canonise
 
-    def unicodeVersMinitel(self, caractere):
+    def unicode_vers_minitel(self, caractere):
         """Convertit un caractère unicode en son équivalent Minitel
 
         :param caractere:
@@ -146,7 +152,7 @@ class Sequence:
             if caractere in UNICODEVERSAUTRE:
                 return unhexlify(UNICODEVERSAUTRE[caractere])
 
-        return unicodedata.normalize('NFKD', caractere).encode('ascii', 'replace')
+        return normalize('NFKD', caractere).encode('ascii', 'replace')
 
     def egale(self, sequence):
         """Teste l’égalité de 2 séquences
@@ -166,7 +172,8 @@ class Sequence:
 
         # Si la séquence à comparer n’est pas de la classe Sequence, alors
         # on la convertit
-        if not isinstance(sequence, Sequence): sequence = Sequence(sequence)
+        if not isinstance(sequence, Sequence):
+            sequence = Sequence(sequence)
 
         return self.valeurs == sequence.valeurs
 

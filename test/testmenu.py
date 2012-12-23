@@ -3,16 +3,14 @@
 
 from minitel.Minitel import Minitel
 from minitel.ui.Menu import Menu
-from minitel.constantes import *
-from minitel.utils import canon, comparer
 
 minitel = Minitel()
 
-minitel.devinerVitesse()
+minitel.deviner_vitesse()
 minitel.identifier()
-minitel.definirVitesse(9600)
-minitel.definirMode('VIDEOTEX')
-minitel.configurerClavier(etendu = True, curseur = False, minuscule = True)
+minitel.definir_vitesse(9600)
+minitel.definir_mode('VIDEOTEX')
+minitel.configurer_clavier(etendu = True, curseur = False, minuscule = True)
 minitel.echo(False)
 minitel.efface()
 minitel.curseur(False)

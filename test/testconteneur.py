@@ -5,16 +5,14 @@ from minitel.Minitel import Minitel
 from minitel.ui.ChampTexte import ChampTexte
 from minitel.ui.Conteneur import Conteneur
 from minitel.ui.Label import Label
-from minitel.constantes import *
-from minitel.utils import canon, comparer
 
 minitel = Minitel()
 
-minitel.devinerVitesse()
+minitel.deviner_vitesse()
 minitel.identifier()
-minitel.definirVitesse(1200)
-minitel.definirMode('VIDEOTEX')
-minitel.configurerClavier(etendu = True, curseur = False, minuscule = True)
+minitel.definir_vitesse(1200)
+minitel.definir_mode('VIDEOTEX')
+minitel.configurer_clavier(etendu = True, curseur = False, minuscule = True)
 minitel.echo(False)
 minitel.efface()
 minitel.curseur(False)

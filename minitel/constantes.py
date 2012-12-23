@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Définitions de constantes de l’univers Minitel"""
 
+# Codes de contrôles de la norme ASCII
 NUL = 0x00 # null
 SOH = 0x01 # start of heading
 STX = 0x02 # start of text
@@ -141,18 +143,152 @@ MAJ_DROITE = [CSI, 0x34, 0x68]
 CTRL_GAUCHE = 0x7f
 
 # Touche Entrée/Retour chariot
-ENTREE = 0x0d
-MAJ_ENTREE = [CSI, 0x48]
+ENTREE      = 0x0d
+MAJ_ENTREE  = [CSI, 0x48]
 CTRL_ENTREE = [CSI, 0x32, 0x4a]
 
 # Touches de fonction
-ENVOI = [DC3, 0x41]
-RETOUR = [DC3, 0x42]
+ENVOI      = [DC3, 0x41]
+RETOUR     = [DC3, 0x42]
 REPETITION = [DC3, 0x43]
-GUIDE = [DC3, 0x44]
+GUIDE      = [DC3, 0x44]
 ANNULATION = [DC3, 0x45]
-SOMMAIRE = [DC3, 0x46]
+SOMMAIRE   = [DC3, 0x46]
 CORRECTION = [DC3, 0x47]
-SUITE = [DC3, 0x48]
-CONNEXION = [DC3, 0x49]
+SUITE      = [DC3, 0x48]
+CONNEXION  = [DC3, 0x49]
+
+# Types de minitels
+TYPE_MINITELS = {
+    'b': {
+        'nom': u'Minitel 1',
+        'retournable': False,
+        'clavier': 'ABCD',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    'c': {
+        'nom': u'Minitel 1',
+        'retournable': False,
+        'clavier': 'Azerty',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False 
+    },
+    'd': {
+        'nom': u'Minitel 10',
+        'retournable': False,
+        'clavier': 'Azerty',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    'e': {
+        'nom': u'Minitel 1 couleur',
+        'retournable': False,
+        'clavier': 'Azerty',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    'f': {
+        'nom': u'Minitel 10',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    'g': {
+        'nom': u'Émulateur',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 9600,
+        '80colonnes': True,
+        'caracteres': True
+    },
+    'j': {
+        'nom': u'Imprimante',
+        'retournable': False,
+        'clavier': None,
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    'r': {
+        'nom': u'Minitel 1',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    's': {
+        'nom': u'Minitel 1 couleur',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False 
+    },
+    't': {
+        'nom': u'Terminatel 252',
+        'retournable': False,
+        'clavier': None,
+        'vitesse': 1200,
+        '80colonnes': False,
+        'caracteres': False
+    },
+    'u': {
+        'nom': u'Minitel 1B',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 4800,
+        '80colonnes': True,
+        'caracteres': False
+    },
+    'v': {
+        'nom': u'Minitel 2',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 9600,
+        '80colonnes': True,
+        'caracteres': True
+    },
+    'w': {
+        'nom': u'Minitel 10B',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 4800,
+        '80colonnes': True,
+        'caracteres': False
+    },
+    'y': {
+        'nom': u'Minitel 5',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 9600,
+        '80colonnes': True,
+        'caracteres': True
+    },
+    'z': {
+        'nom': u'Minitel 12',
+        'retournable': True,
+        'clavier': 'Azerty',
+        'vitesse': 9600,
+        '80colonnes': True,
+        'caracteres': True
+    },
+}
+
+# Les niveaux de gris s’échelonnent comme suit :
+# nor, bleu, rouge, magenta, vert, cyan, jaune, blanc
+COULEURS_MINITEL = {
+    'noir': 0, 'rouge': 1, 'vert': 2, 'jaune': 3,
+    'bleu': 4, 'magenta': 5, 'cyan': 6, 'blanc': 7,
+    '0': 0, '1': 4, '2': 1, '3': 5,
+    '4': 2, '5': 6, '6': 3, '7': 7
+}
+
 

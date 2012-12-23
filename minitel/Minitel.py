@@ -1,12 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Minitel est un module permettant de piloter un Minitel depuis un script
+écrit en Python.
+
+"""
 
 from serial import Serial      # Liaison physique avec le Minitel
 from threading import Thread   # Threads pour l’émission/réception
 from Queue import Queue, Empty # Files de caractères pour l’émission/réception
 
-from constantes import *       # Constantes en rapport avec le Minitel
-from Sequence import Sequence  # Gestion des séquences de caractères
+from minitel.Sequence import Sequence # Gestion des séquences de caractères
+
+from minitel.constantes import (SS2, SEP, ESC, CSI, PRO1, PRO2, PRO3, MIXTE1,
+    MIXTE2, TELINFO, ENQROM, SOH, EOT, TYPE_MINITELS, STATUS_FONCTIONNEMENT,
+    LONGUEUR_PRO2, STATUS_TERMINAL, PROG, START, STOP, LONGUEUR_PRO3,
+    RCPT_CLAVIER, ETEN, C0, MINUSCULES, RS, US, VT, LF, BS, TAB, CON, COF,
+    AIGUILLAGE_ON, AIGUILLAGE_OFF, RCPT_ECRAN, EMET_MODEM, FF, CAN, BEL, CR,
+    SO, SI, B300, B1200, B4800, B9600, REP, COULEURS_MINITEL)
+
+def normaliser_couleur(couleur):
+    """Retourne le numéro de couleur du Minitel.
+
+    À partir d’une couleur fournie sous la forme d’une chaîne avec le
+    nom de la couleur en français ou un entier indiquant un niveau de
+    gris, cette fonction retourne le numéro de la couleur correspondante
+    pour le Minitel.
+
+    :param couleur:
+        Les valeurs acceptées sont noir, rouge, vert, jaune, bleu,
+        magenta, cyan, blanc, et les entiers de 0 (noir) à 7 (blanc)
+    :type couleur:
+        une chaîne de caractères ou un entier
+
+    :returns:
+        Le numéro de la couleur correspondante sur le Minitel ou None si
+        la couleur demandée n’est pas valide.
+    """
+    assert isinstance(couleur, (str, int))
+
+    # On convertit la couleur en chaîne de caractères pour que l’appelant
+    # puisse utiliser indifféremment '0' (str) ou 0 (int).
+    couleur = str(couleur)
+
+    if couleur in COULEURS_MINITEL:
+        return COULEURS_MINITEL[couleur]
+
+    return None
 
 class Minitel:
     """Une classe de pilotage du Minitel via un port série
@@ -51,7 +90,7 @@ class Minitel:
 
         minitel = Minitel()
 
-        minitel.devinerVitesse()
+        minitel.deviner_vitesse()
         minitel.identifier()
 
         # ...
@@ -119,16 +158,16 @@ class Minitel:
 
         # Crée les deux threads de lecture/écriture
         self._threads = []
-        self._threads.append(Thread(None, self._gestionEntree, None, ()))
-        self._threads.append(Thread(None, self._gestionSortie, None, ()))
+        self._threads.append(Thread(None, self._gestion_entree, None, ()))
+        self._threads.append(Thread(None, self._gestion_sortie, None, ()))
 
         # Démarre les deux threads de lecture/écriture
-        for t in self._threads:
+        for thread in self._threads:
             # Configure chaque thread en mode daemon
-            t.setDaemon(True)
+            thread.setDaemon(True)
             try:
                 # Lance le thread
-                t.start()
+                thread.start()
             except (KeyboardInterrupt, SystemExit):
                 self.close()
 
@@ -144,11 +183,12 @@ class Minitel:
         self._continuer = False
 
         # Attend que tous les threads aient fini
-        for t in self._threads: t.join()
+        for thread in self._threads:
+            thread.join()
 
         self._minitel.close()
 
-    def _gestionEntree(self):
+    def _gestion_entree(self):
         """Gestion des séquences de caractères envoyées depuis le Minitel
 
         Cette méthode ne doit pas être appelée directement, elle est réservée
@@ -160,9 +200,10 @@ class Minitel:
             # Attend un caractère pendant 1 seconde
             caractere = self._minitel.read()
 
-            if len(caractere) == 1: self.entree.put(caractere)
+            if len(caractere) == 1:
+                self.entree.put(caractere)
 
-    def _gestionSortie(self):
+    def _gestion_sortie(self):
         """Gestion des séquences de caractères envoyées vers le Minitel
 
         Cette méthode ne doit pas être appelée directement, elle est réservée
@@ -198,7 +239,8 @@ class Minitel:
             un entier
         """
         # Convertit toute entrée en objet Sequence
-        if not isinstance(contenu, Sequence): contenu = Sequence(contenu)
+        if not isinstance(contenu, Sequence):
+            contenu = Sequence(contenu)
 
         # Ajoute les caractères un par un dans la file d’attente d’envoi
         for valeur in contenu.valeurs:
@@ -227,7 +269,7 @@ class Minitel:
 
         return self.entree.get(bloque, attente)
 
-    def recevoirSequence(self):
+    def recevoir_sequence(self):
         """Lit une séquence en provenance du Minitel
 
         Retourne un objet Sequence reçu depuis le Minitel. Cette fonction
@@ -321,7 +363,7 @@ class Minitel:
         # Tente de recevoir le nombre de caractères indiqué par le paramètre
         # attente avec un délai d’1 seconde.
         retour = Sequence()
-        for i in range(0, attente):
+        for _ in range(0, attente):
             try:
                 # Attend un caractère
                 retour.ajoute(self.entree.get(block = True, timeout = 1))
@@ -332,14 +374,14 @@ class Minitel:
 
         return retour
 
-    def definirMode(self, mode = 'VIDEOTEX'):
+    def definir_mode(self, mode = 'VIDEOTEX'):
         """Définit le mode de fonctionnement du Minitel.
 
         Le Minitel peut fonctionner selon 3 modes : VideoTex (le mode standard
         du Minitel, celui lors de l’allumage), Mixte ou TéléInformatique (un
         mode 80 colonnes).
 
-        La méthode definirMode prend en compte le mode courant du Minitel pour
+        La méthode definir_mode prend en compte le mode courant du Minitel pour
         émettre la bonne commande.
 
         :param mode:
@@ -354,10 +396,12 @@ class Minitel:
         assert isinstance(mode, str)
 
         # 3 modes sont possibles
-        if mode not in ['VIDEOTEX', 'MIXTE', 'TELEINFORMATIQUE']: return False
+        if mode not in ['VIDEOTEX', 'MIXTE', 'TELEINFORMATIQUE']:
+            return False
 
         # Si le mode demandé est déjà actif, ne fait rien
-        if self.mode == mode: return True
+        if self.mode == mode:
+            return True
 
         resultat = False
 
@@ -373,7 +417,10 @@ class Minitel:
             # transition en deux étapes en passant par le mode Videotex
             retour = self.appeler([CSI, 0x3f, 0x7b], 2)
             resultat = retour.egale([SEP, 0x5e])
-            if not resultat: return False
+
+            if not resultat:
+                return False
+
             retour = self.appeler([PRO2, MIXTE1], 2)
             resultat = retour.egale([SEP, 0x70])
         elif self.mode == 'VIDEOTEX' and mode == 'MIXTE':
@@ -390,7 +437,8 @@ class Minitel:
             resultat = retour.egale([CSI, 0x3f, 0x7a])
 
         # Si le changement a eu lieu, on garde le nouveau mode en mémoire
-        if resultat: self.mode = mode
+        if resultat:
+            self.mode = mode
 
         return resultat
 
@@ -432,15 +480,15 @@ class Minitel:
         retour = self.appeler([PRO1, ENQROM], 5)
 
         # Teste la validité de la réponse
-        if retour.longueur != 5: return
-        if retour.valeurs[0] != SOH: return
-        if retour.valeurs[4] != EOT: return
+        if (retour.longueur != 5 or
+            retour.valeurs[0] != SOH or
+            retour.valeurs[4] != EOT):
+            return
 
         # Extrait les caractères d’identification
-        constructeurMinitel = chr(retour.valeurs[1])
-        typeMinitel         = chr(retour.valeurs[2])
-        versionLogiciel     = chr(retour.valeurs[3])
-        identifiant         = constructeurMinitel + typeMinitel + versionLogiciel
+        constructeur_minitel = chr(retour.valeurs[1])
+        type_minitel         = chr(retour.valeurs[2])
+        version_logiciel     = chr(retour.valeurs[3])
 
         # Constructeurs
         constructeurs = {
@@ -459,37 +507,20 @@ class Minitel:
         }
             
         # Types de Minitel
-        typeMinitels = {
-            'b': { 'nom': u'Minitel 1', 'retournable': False, 'clavier': 'ABCD', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'c': { 'nom': u'Minitel 1', 'retournable': False, 'clavier': 'Azerty', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'd': { 'nom': u'Minitel 10', 'retournable': False, 'clavier': 'Azerty', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'e': { 'nom': u'Minitel 1 couleur', 'retournable': False, 'clavier': 'Azerty', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'f': { 'nom': u'Minitel 10', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'g': { 'nom': u'Émulateur', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 9600, '80colonnes': True, 'caracteres': True },
-            'j': { 'nom': u'Imprimante', 'retournable': False, 'clavier': None, 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'r': { 'nom': u'Minitel 1', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            's': { 'nom': u'Minitel 1 couleur', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            't': { 'nom': u'Terminatel 252', 'retournable': False, 'clavier': None, 'vitesse': 1200, '80colonnes': False, 'caracteres': False },
-            'u': { 'nom': u'Minitel 1B', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 4800, '80colonnes': True, 'caracteres': False },
-            'v': { 'nom': u'Minitel 2', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 9600, '80colonnes': True, 'caracteres': True },
-            'w': { 'nom': u'Minitel 10B', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 4800, '80colonnes': True, 'caracteres': False },
-            'y': { 'nom': u'Minitel 5', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 9600, '80colonnes': True, 'caracteres': True },
-            'z': { 'nom': u'Minitel 12', 'retournable': True, 'clavier': 'Azerty', 'vitesse': 9600, '80colonnes': True, 'caracteres': True },
-        }
+        if type_minitel in TYPE_MINITELS:
+            self.capacite = TYPE_MINITELS[type_minitel]
 
-        if typeMinitel in typeMinitels:
-            self.capacite = typeMinitels[typeMinitel]
+        if constructeur_minitel in constructeurs:
+            self.capacite['constructeur'] = constructeurs[constructeur_minitel]
 
-        if constructeurMinitel in constructeurs:
-            self.capacite['constructeur'] = constructeurs[constructeurMinitel]
-
-        self.capacite['version'] = versionLogiciel
+        self.capacite['version'] = version_logiciel
 
         # Correction du constructeur
-        if constructeurMinitel == 'B' and typeMinitel == 'v':
+        if constructeur_minitel == 'B' and type_minitel == 'v':
             self.capacite['constructeur'] = u'Philips'
-        elif constructeurMinitel == 'C' and versionLogiciel == ['4', '5', ';', '<']:
-            self.capacite['constructeur'] = u'Telic ou Matra'
+        elif constructeur_minitel == 'C':
+            if version_logiciel == ['4', '5', ';', '<']:
+                self.capacite['constructeur'] = u'Telic ou Matra'
 
         # Détermine le mode écran dans lequel se trouve le Minitel
         retour = self.appeler([PRO1, STATUS_FONCTIONNEMENT], LONGUEUR_PRO2)
@@ -505,14 +536,14 @@ class Minitel:
             # Par défaut, on considère qu’on est en mode Vidéotex
             self.mode = 'VIDEOTEX'
 
-    def devinerVitesse(self):
+    def deviner_vitesse(self):
         """Deviner la vitesse de connexion avec le Minitel.
 
         Cette méthode doit être appelée juste après la création de l’objet
         afin de déterminer automatiquement la vitesse de transmission sur
         laquelle le Minitel est réglé.
 
-        Pour effectuer la détection, la méthode devinerVitesse va tester les
+        Pour effectuer la détection, la méthode deviner_vitesse va tester les
         vitesses 9600 bps, 4800 bps, 1200 bps et 300 bps (dans cet ordre) et
         envoyer à chaque fois une commande PRO1 de demande de statut terminal.
         Si le Minitel répond par un acquittement PRO2, on a détecté la vitesse.
@@ -542,13 +573,13 @@ class Minitel:
         # La vitesse n’a pas été trouvée
         return -1
 
-    def definirVitesse(self, vitesse):
+    def definir_vitesse(self, vitesse):
         """Programme le Minitel et le port série pour une vitesse donnée.
 
         Pour changer la vitesse de communication entre l’ordinateur et le
         Minitel, le développeur doit d’abord s’assurer que la connexion avec
         le Minitel a été établie à la bonne vitesse (voir la méthode
-        devinerVitesse).
+        deviner_vitesse).
 
         Cette méthode ne doit être appelée qu’après que le Minitel ait été
         identifié (voir la méthode identifier) car elle se base sur les
@@ -574,8 +605,8 @@ class Minitel:
         vitesses = {300: B300, 1200: B1200, 4800: B4800, 9600: B9600}
 
         # Teste la validité de la vitesse demandée
-        if vitesse not in vitesses: return False
-        if vitesse > self.capacite['vitesse']: return False
+        if vitesse not in vitesses or vitesse > self.capacite['vitesse']:
+            return False
 
         # Envoie une commande protocole de programmation de vitesse
         retour = self.appeler([PRO2, PROG, vitesses[vitesse]], LONGUEUR_PRO2)
@@ -593,7 +624,8 @@ class Minitel:
 
         return True
 
-    def configurerClavier(self, etendu = False, curseur = False, minuscule = False):
+    def configurer_clavier(self, etendu = False, curseur = False,
+                           minuscule = False):
         """Configure le fonctionnement du clavier.
 
         Configure le fonctionnement du clavier du Minitel. Cela impacte les
@@ -645,44 +677,10 @@ class Minitel:
 
             retour = self.appeler(commande, longueur)
 
-            if retour.longueur != longueur: return False
+            if retour.longueur != longueur:
+                return False
 
         return True
-
-    def normaliserCouleur(self, couleur):
-        """Retourne le numéro de couleur du Minitel.
-
-        À partir d’une couleur fournie sous la forme d’une chaîne avec le
-        nom de la couleur en français ou un entier indiquant un niveau de
-        gris, cette méthode retourne le numéro de la couleur correspondante
-        pour le Minitel.
-
-        :param couleur:
-            Les valeurs acceptées sont noir, rouge, vert, jaune, bleu,
-            magenta, cyan, blanc, et les entiers de 0 (noir) à 7 (blanc)
-        :type couleur:
-            une chaîne de caractères ou un entier
-
-        :returns:
-            Le numéro de la couleur correspondante sur le Minitel ou None si
-            la couleur demandée n’est pas valide.
-        """
-        assert isinstance(couleur, (str, int))
-
-        # Les niveaux de gris s’échelonnent comme suit :
-        # nor, bleu, rouge, magenta, vert, cyan, jaune, blanc
-        couleurs = {
-            'noir': 0, 'rouge': 1, 'vert': 2, 'jaune': 3,
-            'bleu': 4, 'magenta': 5, 'cyan': 6, 'blanc': 7,
-            '0': 0, '1': 4, '2': 1, '3': 5,
-            '4': 2, '5': 6, '6': 3, '7': 7
-        }
-
-        # On convertit la couleur en chaîne de caractères pour que l’appelant
-        # puisse utiliser indifféremment '0' (str) ou 0 (int).
-        if couleur in couleurs: return couleurs[str(couleur)]
-
-        return None
 
     def couleur(self, caractere = None, fond = None):
         """Définit les couleurs utilisées pour les prochains caractères.
@@ -716,13 +714,13 @@ class Minitel:
 
         # Définit la couleur d’avant-plan (la couleur du caractère)
         if caractere != None:
-            couleur = self.normaliserCouleur(caractere)
+            couleur = normaliser_couleur(caractere)
             if couleur != None:
                 self.envoyer([ESC, 0x40 + couleur])
 
         # Définit la couleur d’arrière-plan (la couleur de fond)
         if fond != None:
-            couleur = self.normaliserCouleur(fond)
+            couleur = normaliser_couleur(fond)
             if couleur != None:
                 self.envoyer([ESC, 0x50 + couleur])
 
@@ -932,7 +930,7 @@ class Minitel:
             - du curseur jusqu’à la fin de la ligne ('finligne'),
             - du curseur jusqu’au bas de l’écran ('finecran'),
             - du début de l’écran jusqu’au curseur ('debutecran'),
-            - du début de la ligne jusqu’au curseur ('debutligne'),
+            - du début de la ligne jusqu’au curseur ('debut_ligne'),
             - la ligne entière ('ligne').
         :type porte:
             une chaîne de caractères
@@ -943,7 +941,7 @@ class Minitel:
             'finecran': [CSI, 0x4a],
             'debutecran': [CSI, 0x31, 0x4a],
             #'tout': [CSI, 0x32, 0x4a],
-            'debutligne': [CSI, 0x31, 0x4b],
+            'debut_ligne': [CSI, 0x31, 0x4b],
             'ligne': [CSI, 0x32, 0x4b]
         }
 
@@ -978,7 +976,7 @@ class Minitel:
         """
         self.envoyer([BEL])
 
-    def debutLigne(self):
+    def debut_ligne(self):
         """Retour en début de ligne
 
         Positionne le curseur au début de la ligne courante.
@@ -1088,14 +1086,16 @@ class Minitel:
         self.envoyer([US, 0x23, depuis, 0x30])
 
         octet = ''
-        comptePixel = 0
+        compte_pixel = 0
         for pixel in dessins:
             # Seuls les caractères 0 et 1 sont interprétés, les autres sont
             # ignorés. Cela permet de présenter les dessins dans le code
             # source de façon plus lisible
-            if pixel != '0' and pixel != '1': continue
+            if pixel != '0' and pixel != '1':
+                continue
+
             octet = octet + pixel
-            comptePixel += 1
+            compte_pixel += 1
 
             # On regroupe les pixels du caractères par paquets de 6
             # car on ne peut envoyer que 6 bits à la fois
@@ -1106,11 +1106,11 @@ class Minitel:
             # Quand 80 pixels (8 colonnes × 10 lignes) ont été envoyés
             # on ajoute 4 bits à zéro car l’envoi se fait par paquet de 6 bits
             # (8×10 = 80 pixels, 14×6 = 84 bits, 84-80 = 4)
-            if comptePixel == 80:
+            if compte_pixel == 80:
                 self.envoyer(0x40 + int(octet + '0000', 2))
                 self.envoyer(0x30)
                 octet = ''
-                comptePixel = 0
+                compte_pixel = 0
 
         # Positionner le curseur permet de sortir du mode de définition
         self.envoyer([US, 0x41, 0x41])

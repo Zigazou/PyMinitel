@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Base pour la création d’une interface utilisateur pour le Minitel"""
 
 from ..Minitel import Minitel
 
@@ -11,7 +12,7 @@ class UI:
 
     Elle instaure les attributs suivants :
 
-    - x et y : coordonnées haut gauche de l’élément
+    - posx et posy : coordonnées haut gauche de l’élément
     - largeur et hauteur : dimensions en caractères de l’élément
     - minitel : un objet Minitel utilisé pour l’affichage de l’élément
     - couleur : couleur d’avant-plan/des caractères
@@ -22,12 +23,12 @@ class UI:
     - __init__ : initialisation de l’objet
     - affiche : affichage de l’objet
     - efface : effacement de l’objet
-    - gereTouche : gestion de l’appui d’une touche (si l’élément est activable)
-    - gereArrivee : gestion de l’activation de l’élément
-    - gereDepart : gestion de la désactivation de l’élément
+    - gere_touche : gestion de l’appui d’une touche (si l’élément est activable)
+    - gere_arrivee : gestion de l’activation de l’élément
+    - gere_depart : gestion de la désactivation de l’élément
 
     """
-    def __init__(self, minitel, x, y, largeur, hauteur, couleur):
+    def __init__(self, minitel, posx, posy, largeur, hauteur, couleur):
         """Constructeur
 
         :param minitel:
@@ -36,14 +37,14 @@ class UI:
         :type minitel:
             un objet Minitel
 
-        :param x:
+        :param posx:
             Coordonnée x de l’élément
-        :type x:
+        :type posx:
             un entier
 
-        :param y:
+        :param posy:
             Coordonnée y de l’élément
-        :type y:
+        :type posy:
             un entier
         
         :param largeur:
@@ -62,18 +63,18 @@ class UI:
             un entier ou une chaîne de caractères
         """
         assert isinstance(minitel, Minitel)
-        assert x > 0 and x <= 80
-        assert y > 0 and y <= 24
-        assert largeur > 0 and largeur + x - 1 <= 80
-        assert hauteur > 0 and hauteur + y - 1 <= 80
-        assert isinstance(couleur, (int, str))
+        assert posx > 0 and posx <= 80
+        assert posy > 0 and posy <= 24
+        assert largeur > 0 and largeur + posx - 1 <= 80
+        assert hauteur > 0 and hauteur + posy - 1 <= 80
+        assert isinstance(couleur, (int, str)) or couleur == None
 
         # Un élément UI est toujours rattaché à un objet Minitel
         self.minitel = minitel
 
         # Un élément UI occupe une zone rectangulaire de l’écran du Minitel
-        self.x = x
-        self.y = y
+        self.posx = posx
+        self.posy = posy
         self.largeur = largeur
         self.hauteur = hauteur
         self.couleur = couleur
@@ -86,10 +87,11 @@ class UI:
         """Boucle d’exécution d’un élément
 
         L’appel de cette méthode permet de lancer une boucle infinie qui va
-        gérer l’appui des touches (méthode gereTouche) provenant du Minitel.
+        gérer l’appui des touches (méthode gere_touche) provenant du Minitel.
         Dès qu’une touche n’est pas gérée par l’élément, la boucle s’arrête.
         """
-        while self.gereTouche(self.minitel.recevoirSequence()): pass
+        while self.gere_touche(self.minitel.recevoir_sequence()):
+            pass
 
     def affiche(self):
         """Affiche l’élément
@@ -106,11 +108,11 @@ class UI:
         l’élément. Elle peut être surchargée pour obtenir une gestion plus
         poussée de l’affichage.
         """
-        for ligne in range(self.y, self.y + self.hauteur):
-            self.minitel.position(self.x, ligne)
+        for ligne in range(self.posy, self.posy + self.hauteur):
+            self.minitel.position(self.posx, ligne)
             self.minitel.repeter(' ', self.largeur)
 
-    def gereTouche(self, sequence):
+    def gere_touche(self, sequence):
         """Gère une touche
 
         Cette méthode est appelée automatiquement par la méthode executer dès
@@ -132,7 +134,7 @@ class UI:
         """
         return False
 
-    def gereArrivee(self):
+    def gere_arrivee(self):
         """Gère l’activation de l’élément
 
         Cette méthode est appelée lorsque l’élément est activé (lorsqu’il
@@ -140,7 +142,7 @@ class UI:
         """
         pass
 
-    def gereDepart(self):
+    def gere_depart(self):
         """Gère la désactivation de l’élément
 
         Cette méthode est appelée lorsque l’élément est désactivé (lorsqu’il ne

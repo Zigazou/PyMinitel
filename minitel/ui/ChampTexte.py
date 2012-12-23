@@ -1,58 +1,73 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from .UI import UI
-from ..constantes import *
-from ..Sequence import Sequence
+from ..constantes import (
+    GAUCHE, DROITE, CORRECTION, ACCENT_AIGU, ACCENT_GRAVE, ACCENT_CIRCONFLEXE, 
+    ACCENT_TREMA, ACCENT_CEDILLE
+)
+
+CARACTERES_MINITEL = (
+    'abcdefghijklmnopqrstuvwxyz' +
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+    ' *$!:;,?./&(-_)=+\'@'
+)
 
 class ChampTexte(UI):
-    def __init__(self, minitel,x, y, longueurVisible, longueurTotale = None, valeur = u'', couleur = None):
-        assert isinstance(x, int)
-        assert isinstance(y, int)
-        assert isinstance(longueurVisible, int)
-        assert isinstance(longueurTotale, int) or longueurTotale == None
+    def __init__(self, minitel, posx, posy, longueur_visible,
+                 longueur_totale = None, valeur = u'', couleur = None):
+        assert isinstance(posx, int)
+        assert isinstance(posy, int)
+        assert isinstance(longueur_visible, int)
+        assert isinstance(longueur_totale, int) or longueur_totale == None
         assert isinstance(valeur, (str, unicode))
-        assert x + longueurVisible < 80
-        assert longueurVisible >= 1
-        if longueurTotale == None: longueurTotale = longueurVisible
-        assert longueurVisible <= longueurTotale
+        assert posx + longueur_visible < 80
+        assert longueur_visible >= 1
+        if longueur_totale == None:
+            longueur_totale = longueur_visible
+        assert longueur_visible <= longueur_totale
 
-        UI.__init__(self, minitel, x, y, longueurVisible, 1, couleur)
+        UI.__init__(self, minitel, posx, posy, longueur_visible, 1, couleur)
 
         # Initialise le champ
-        self.longueurVisible = longueurVisible
-        self.longueurTotale = longueurTotale
+        self.longueur_visible = longueur_visible
+        self.longueur_totale = longueur_totale
         self.valeur = u'' + valeur
-        self.curseurX = 0
+        self.curseur_x = 0
         self.decalage = 0
         self.activable = True
         self.accent = None
 
-    def gereTouche(self, sequence):
+    def gere_touche(self, sequence):
         if sequence.egale(GAUCHE):
             self.accent = None
-            self.curseurGauche()
+            self.curseur_gauche()
             return True        
         elif sequence.egale(DROITE):
             self.accent = None
-            self.curseurDroite()
+            self.curseur_droite()
             return True        
         elif sequence.egale(CORRECTION):
             self.accent = None
-            if self.curseurGauche():
-                self.valeur = self.valeur[0:self.curseurX] + self.valeur[self.curseurX + 1:]
+            if self.curseur_gauche():
+                self.valeur = (self.valeur[0:self.curseur_x] +
+                               self.valeur[self.curseur_x + 1:])
                 self.affiche()
             return True        
-        elif (sequence.egale(ACCENT_AIGU) or sequence.egale(ACCENT_GRAVE) or
-             sequence.egale(ACCENT_CIRCONFLEXE) or sequence.egale(ACCENT_TREMA)):
+        elif (sequence.egale(ACCENT_AIGU) or
+              sequence.egale(ACCENT_GRAVE) or
+              sequence.egale(ACCENT_CIRCONFLEXE) or
+              sequence.egale(ACCENT_TREMA)):
             self.accent = sequence
             return True
         elif sequence.egale([ACCENT_CEDILLE, 'c']):
             self.accent = None
-            self.valeur = self.valeur[0:self.curseurX] + u'ç' + self.valeur[self.curseurX:]
-            self.curseurDroite()
+            self.valeur = (self.valeur[0:self.curseur_x] +
+                           u'ç' +
+                           self.valeur[self.curseur_x:])
+            self.curseur_droite()
             self.affiche()
             return True
-        elif chr(sequence.valeurs[0]) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ *$!:;,?./&(-_)=+\'@':
+        elif chr(sequence.valeurs[0]) in CARACTERES_MINITEL:
             caractere = u'' + chr(sequence.valeurs[0])
             if self.accent != None:
                 if caractere in 'aeiou':
@@ -67,66 +82,79 @@ class ChampTexte(UI):
 
                 self.accent = None
 
-            self.valeur = self.valeur[0:self.curseurX] + caractere + self.valeur[self.curseurX:]
-            self.curseurDroite()
+            self.valeur = (self.valeur[0:self.curseur_x] +
+                           caractere +
+                           self.valeur[self.curseur_x:])
+            self.curseur_droite()
             self.affiche()
             return True        
 
         return False
 
-    def curseurGauche(self):
-        if self.curseurX == 0:
+    def curseur_gauche(self):
+        if self.curseur_x == 0:
             self.minitel.bip()
             return False
 
-        self.curseurX = self.curseurX - 1
+        self.curseur_x = self.curseur_x - 1
 
-        if self.curseurX < self.decalage:
-            self.decalage = max(0, self.decalage - self.longueurVisible / 2)
+        if self.curseur_x < self.decalage:
+            self.decalage = max(0, self.decalage - self.longueur_visible / 2)
             self.affiche()
         else:
-            self.minitel.position(self.x + self.curseurX - self.decalage, self.y)
+            self.minitel.position(
+                self.posx + self.curseur_x - self.decalage,
+                self.posy
+            )
 
         return True
     
-    def curseurDroite(self):
-        if self.curseurX == min(len(self.valeur), self.longueurTotale):
+    def curseur_droite(self):
+        if self.curseur_x == min(len(self.valeur), self.longueur_totale):
             self.minitel.bip()
             return False
     
-        self.curseurX = self.curseurX + 1
+        self.curseur_x = self.curseur_x + 1
 
-        if self.curseurX > self.decalage + self.longueurVisible:
-            self.decalage = max(0, self.decalage + self.longueurVisible / 2)
+        if self.curseur_x > self.decalage + self.longueur_visible:
+            self.decalage = max(0, self.decalage + self.longueur_visible / 2)
             self.affiche()
         else:
-            self.minitel.position(self.x + self.curseurX - self.decalage, self.y)
+            self.minitel.position(
+                self.posx + self.curseur_x - self.decalage,
+                self.posy
+            )
 
         return True
 
-    def gereArrivee(self):
-        self.minitel.position(self.x + self.curseurX - self.decalage, self.y)
+    def gere_arrivee(self):
+        self.minitel.position(
+            self.posx + self.curseur_x - self.decalage,
+            self.posy
+        )
         self.minitel.curseur(True)
 
-    def gereDepart(self):
+    def gere_depart(self):
         self.accent = None
         self.minitel.curseur(False)
 
     def affiche(self):
         # Début du champ texte à l’écran
-        self.minitel.position(self.x, self.y)
+        self.minitel.position(self.posx, self.posy)
 
         # Couleur du label
-        if self.couleur != None: self.minitel.couleur(caractere = self.couleur)
+        if self.couleur != None:
+            self.minitel.couleur(caractere = self.couleur)
 
-        if len(self.valeur) - self.decalage <= self.longueurVisible:
+        if len(self.valeur) - self.decalage <= self.longueur_visible:
             # Cas valeur plus petite que la longueur visible
-            affichage = self.valeur[self.decalage:].ljust(self.longueurVisible, '.')
+            affichage = self.valeur[self.decalage:]
+            affichage = affichage.ljust(self.longueur_visible, '.')
         else:
             # Cas valeur plus grande que la longueur visible
             affichage = self.valeur[
                 self.decalage:
-                self.decalage + self.longueurVisible
+                self.decalage + self.longueur_visible
             ]
 
         # Affiche le contenu
@@ -134,7 +162,7 @@ class ChampTexte(UI):
 
         # Place le curseur visible
         self.minitel.position(
-            self.x + self.curseurX - self.decalage,
-            self.y
+            self.posx + self.curseur_x - self.decalage,
+            self.posy
         )
 
