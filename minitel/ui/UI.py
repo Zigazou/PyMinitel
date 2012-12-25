@@ -112,6 +112,7 @@ class UI:
             self.minitel.position(self.posx, ligne)
             self.minitel.repeter(' ', self.largeur)
 
+    # pylint: disable-msg=W0613,R0201
     def gere_touche(self, sequence):
         """Gère une touche
 

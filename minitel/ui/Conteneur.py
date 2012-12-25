@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Classe permettant de regrouper des éléments d’interface utilisateur"""
+
 from .UI import UI
 from ..Sequence import Sequence
 from ..constantes import ENTREE, MAJ_ENTREE
@@ -81,6 +83,28 @@ class Conteneur(UI):
         UI.__init__(self, minitel, posx, posy, largeur, hauteur, couleur)
 
     def gere_touche(self, sequence):
+        """Gestion des touches
+
+        Cette méthode est appelée automatiquement par la méthode executer.
+
+        Elle tente avant tout de faire traiter la touche par l’élément actif.
+        Si l’élément actif ne gère pas la touche, le conteneur teste si les
+        touches ENTREE ou MAJ ENTREE ont été pressées. Ces deux touches
+        permettent à l’utilisateur de naviguer entre les éléments.
+
+        En cas de changement d’élément actif, le conteneur appelle la méthode
+        gere_depart de l’ancien élément actif et la méthode gere_arrivee du
+        nouvel élément actif.
+
+        :param sequence:
+            La séquence reçue du Minitel.
+        :type sequence:
+            un objet Sequence
+
+        :returns:
+            True si la touche a été gérée par le conteneur ou l’un de ses
+            éléments, False sinon.
+        """
         assert isinstance(sequence, Sequence)
 
         # Aucun élement actif ? Donc rien à faire
@@ -114,6 +138,17 @@ class Conteneur(UI):
         return False
             
     def affiche(self):
+        """Affichage du conteneur et de ses éléments
+
+        À l’appel de cette méthode, le conteneur dessine le fond si la couleur
+        de fond a été définie. Ensuite, elle demande à chacun des éléments
+        contenus de se dessiner.
+
+        Note:
+            Les coordonnées du conteneur et les coordonnées des éléments sont
+            indépendantes.
+
+        """
         # Colorie le fond du conteneur si une couleur de fond a été définie
         if self.fond != None:
             for posy in range(self.posy, self.posy + self.hauteur):
@@ -130,6 +165,23 @@ class Conteneur(UI):
             self.element_actif.gere_arrivee()
 
     def ajoute(self, element):
+        """Ajout d’un élément au conteneur
+
+        Le conteneur maintient une liste ordonnées de ses éléments.
+
+        Quand un élément est ajouté, si sa couleur n’a pas été définie, il
+        prend celle du conteneur.
+
+        Si aucun élément du conteneur n’est actif et que l’élément ajouté est
+        activable, il devient automatiquement l’élément actif pour le
+        conteneur.
+
+        :param element:
+            l’élément à ajouter à la liste ordonnée.
+        
+        :type element:
+            un objet de classe UI ou de ses descendantes.
+        """
         assert isinstance(element, UI)
         assert element not in self.elements
 
@@ -144,6 +196,15 @@ class Conteneur(UI):
             self.element_actif = element
 
     def suivant(self):
+        """Passe à l’élément actif suivant
+
+        Cette méthode sélectionne le prochain élément activable dans la liste
+        à partir de l’élément actif.
+
+        :returns:
+            True si un élément actif suivant a été trouvé et sélectionné,
+            False sinon.
+        """
         # S’il n’y a pas d’éléments, il ne peut pas y avoir d’élément actif
         if len(self.elements) == 0:
             return False
@@ -164,6 +225,15 @@ class Conteneur(UI):
         return False
 
     def precedent(self):
+        """Passe à l’élément actif précédent
+
+        Cette méthode sélectionne l’élément activable précédent dans la liste
+        à partir de l’élément actif.
+
+        :returns:
+            True si un élément actif précédent a été trouvé et sélectionné,
+            False sinon.
+        """
         # S’il n’y a pas d’éléments, il ne peut pas y avoir d’élément actif
         if len(self.elements) == 0:
             return False
