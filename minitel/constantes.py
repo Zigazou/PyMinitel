@@ -291,4 +291,30 @@ COULEURS_MINITEL = {
     '4': 2, '5': 6, '6': 3, '7': 7
 }
 
+# Capacités les plus basiques du Minitel
+CAPACITES_BASIQUES = {
+    'nom': u'Minitel inconnu',
+    'retournable': False,
+    'clavier': 'ABCD',
+    'vitesse': 1200,
+    'constructeur': u'Inconnu',
+    '80colonnes': False,
+    'caracteres': False,
+    'version': None
+}
 
+# Codes d’identification du constructeur
+CONSTRUCTEURS = {
+    'A': u'Matra',
+    'B': u'RTIC',
+    'C': u'Telic-Alcatel',
+    'D': u'Thomson',
+    'E': u'CCS',
+    'F': u'Fiet',
+    'G': u'Fime',
+    'H': u'Unitel',
+    'I': u'Option',
+    'J': u'Bull',
+    'K': u'Télématique',
+    'L': u'Desmet'
+}

@@ -16,7 +16,8 @@ from minitel.constantes import (SS2, SEP, ESC, CSI, PRO1, PRO2, PRO3, MIXTE1,
     LONGUEUR_PRO2, STATUS_TERMINAL, PROG, START, STOP, LONGUEUR_PRO3,
     RCPT_CLAVIER, ETEN, C0, MINUSCULES, RS, US, VT, LF, BS, TAB, CON, COF,
     AIGUILLAGE_ON, AIGUILLAGE_OFF, RCPT_ECRAN, EMET_MODEM, FF, CAN, BEL, CR,
-    SO, SI, B300, B1200, B4800, B9600, REP, COULEURS_MINITEL)
+    SO, SI, B300, B1200, B4800, B9600, REP, COULEURS_MINITEL,
+    CAPACITES_BASIQUES, CONSTRUCTEURS)
 
 def normaliser_couleur(couleur):
     """Retourne le numéro de couleur du Minitel.
@@ -125,16 +126,7 @@ class Minitel:
         self.vitesse = 1200
 
         # Initialise la liste des capacités du Minitel
-        self.capacite = {
-            'nom': u'Minitel inconnu',
-            'retournable': False,
-            'clavier': 'ABCD',
-            'vitesse': 1200,
-            'constructeur': u'Inconnu',
-            '80colonnes': False,
-            'caracteres': False,
-            'version': None
-        }
+        self.capacite = CAPACITES_BASIQUES
 
         # Crée les deux files d’attente entrée/sortie
         self.entree = Queue()
@@ -465,16 +457,7 @@ class Minitel:
           (True ou False)
         - capacite['version'] -- Version du logiciel (une lettre)
         """
-        self.capacite = {
-            'nom': u'Minitel inconnu',
-            'retournable': False,
-            'clavier': 'ABCD',
-            'vitesse': 1200,
-            'constructeur': u'Inconnu',
-            '80colonnes': False,
-            'caracteres': False,
-            'version': None
-        }
+        self.capacite = CAPACITES_BASIQUES
 
         # Émet la commande d’identification
         retour = self.appeler([PRO1, ENQROM], 5)
@@ -490,28 +473,12 @@ class Minitel:
         type_minitel         = chr(retour.valeurs[2])
         version_logiciel     = chr(retour.valeurs[3])
 
-        # Constructeurs
-        constructeurs = {
-            'A': u'Matra',
-            'B': u'RTIC',
-            'C': u'Telic-Alcatel',
-            'D': u'Thomson',
-            'E': u'CCS',
-            'F': u'Fiet',
-            'G': u'Fime',
-            'H': u'Unitel',
-            'I': u'Option',
-            'J': u'Bull',
-            'K': u'Télématique',
-            'L': u'Desmet'
-        }
-            
         # Types de Minitel
         if type_minitel in TYPE_MINITELS:
             self.capacite = TYPE_MINITELS[type_minitel]
 
-        if constructeur_minitel in constructeurs:
-            self.capacite['constructeur'] = constructeurs[constructeur_minitel]
+        if constructeur_minitel in CONSTRUCTEURS:
+            self.capacite['constructeur'] = CONSTRUCTEURS[constructeur_minitel]
 
         self.capacite['version'] = version_logiciel
 
