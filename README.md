@@ -1,7 +1,7 @@
 PyMinitel
 =========
 
-PyMinitel est une bibliothèque Python permettant de pilor un Minitel
+PyMinitel est une bibliothèque Python permettant de piloter un Minitel
 depuis un PC sous Linux. Pour cela, la bibliothèque PySerial est
 nécessaire car elle est utilisée pour dialoguer avec le Minitel, en
 émission comme en réception.
@@ -25,3 +25,8 @@ Installation
 ------------
 
 sudo python setup.py install
+
+Exemples
+--------
+
+Le sous-répertoire test contient quelques exemples d’utilisation de la bibliothèque.
