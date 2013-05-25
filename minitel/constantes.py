@@ -288,7 +288,9 @@ COULEURS_MINITEL = {
     'noir': 0, 'rouge': 1, 'vert': 2, 'jaune': 3,
     'bleu': 4, 'magenta': 5, 'cyan': 6, 'blanc': 7,
     '0': 0, '1': 4, '2': 1, '3': 5,
-    '4': 2, '5': 6, '6': 3, '7': 7
+    '4': 2, '5': 6, '6': 3, '7': 7,
+    0: 0, 1: 4, 2: 1, 3: 5,
+    4: 2, 5: 6, 6: 3, 7: 7
 }
 
 # Capacités les plus basiques du Minitel

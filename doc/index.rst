@@ -9,6 +9,17 @@ et le Minitel.
 PyMinitel contient aussi des classes permettant la création d’une interface
 utilisateur rudimentaire.
 
+Installation
+============
+
+Pour pouvoir utiliser PyMinitel, vous devez l’installer sur votre système.
+
+PyMinitel utilise distutils. L’installation en est donc simplifiée. Il suffit
+d’exécuter la commande suivante sous Linux dans le répertoire de PyMinitel::
+
+   sudo python setup.py install
+
+
 
 Démarrage rapide
 ================

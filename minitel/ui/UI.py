@@ -112,6 +112,9 @@ class UI:
             self.minitel.position(self.posx, ligne)
             self.minitel.repeter(' ', self.largeur)
 
+    # Désactive un faux positif. Il est normal que cette méthode n’utilise
+    # pas l’argument sequence et qu’elle soit une méthode plutôt qu’une
+    # fonction
     # pylint: disable-msg=W0613,R0201
     def gere_touche(self, sequence):
         """Gère une touche
