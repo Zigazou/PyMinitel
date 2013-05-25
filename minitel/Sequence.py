@@ -42,7 +42,8 @@ class Sequence:
             valeur à ajouter à la construction de l’objet. Si la valeur est à
             None, aucune valeur n’est ajoutée
         :type valeur:
-            une chaîne de caractères, un entier, une liste ou None
+            une chaîne de caractères, un entier, une liste, une séquence ou
+            None
 
         :param standard:
             standard à utiliser pour la conversion unicode vers Minitel. Les
@@ -51,7 +52,8 @@ class Sequence:
         :type standard:
             une chaîne de caractères
         """
-        assert valeur == None or isinstance(valeur, (list, int, str, unicode))
+        assert valeur == None or \
+                isinstance(valeur, (list, int, str, unicode, Sequence))
         assert standard in ['VIDEOTEX', 'MIXTE', 'TELEINFORMATIQUE']
 
         self.valeurs = []
@@ -71,9 +73,9 @@ class Sequence:
         :param valeur:
             valeur à ajouter
         :type valeur:
-            une chaîne de caractères, un entier ou une liste
+            une chaîne de caractères, un entier, une liste ou une Séquence
         """
-        assert isinstance(valeur, (list, int, str, unicode))
+        assert isinstance(valeur, (list, int, str, unicode, Sequence))
 
         self.valeurs += self.canonise(valeur)
         self.longueur = len(self.valeurs)
@@ -90,7 +92,7 @@ class Sequence:
         :param valeur:
             valeur à canoniser
         :type valeur:
-            une chaîne de caractères, un entier ou une liste
+            une chaîne de caractères, un entier, une liste ou une Séquence
 
         :returns:
             Une liste de profondeur 1 d’entiers représentant des valeurs à la
@@ -100,11 +102,15 @@ class Sequence:
             canonise(['dd', 32, ['dd', 32]]) retournera
             [100, 100, 32, 100, 100, 32]
         """
-        assert isinstance(valeur, (list, int, str, unicode))
+        assert isinstance(valeur, (list, int, str, unicode, Sequence))
 
         # Si la valeur est juste un entier, on le retient dans une liste
         if isinstance(valeur, int):
             return [valeur]
+
+        # Si la valeur est une Séquence, ses valeurs ont déjà été canonisées
+        if isinstance(valeur, Sequence):
+            return valeur.valeurs
 
         # À ce point, le paramètre contient soit une chaîne de caractères, soit
         # une liste. L’une ou l’autre est parcourable par une boucle for ... in
