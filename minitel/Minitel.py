@@ -1007,7 +1007,7 @@ class Minitel:
             self.envoyer([CSI, '4h', ' ' * nb_colonne, CSI, '4l'])
 
         if nb_ligne != None:
-            self.envoyer([CSI, str(nombre), 'L'])
+            self.envoyer([CSI, str(nb_ligne), 'L'])
 
     def semigraphique(self, actif = True):
         """Passe en mode semi-graphique ou en mode alphabétique
