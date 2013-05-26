@@ -5,7 +5,6 @@ PIL en semi-graphiques pour le Minitel.
 
 """
 
-from PIL import Image
 from operator import itemgetter
 
 from minitel.constantes import ESC, SO, DC2, COULEURS_MINITEL
@@ -32,13 +31,15 @@ def _huit_niveaux(niveau):
     try:
         return niveau * 8 / 256
     except TypeError:
-		return int(
-			sqrt(
-				0.299 * niveau[0] ** 2 +
-				0.587 * niveau[1] ** 2 +
-				0.114 * niveau[2] ** 2
-			)
-		) * 8 / 256
+        return int(
+            round(
+                sqrt(
+                    0.299 * niveau[0] ** 2 +
+                    0.587 * niveau[1] ** 2 +
+                    0.114 * niveau[2] ** 2
+                )
+            ) * 8 / 256
+        )
 
 def _deux_couleurs(couleurs):
     """Réduit une liste de couleurs à un couple de deux couleurs.
@@ -167,15 +168,20 @@ class ImageMinitel:
     - les pixels ne sont pas carrés
     """
 
-    def __init__(self, minitel):
+    def __init__(self, minitel, disjoint = False):
         """Constructeur
 
         :param minitel:
             L’objet auquel envoyer les commandes
         :type minitel:
             un objet Minitel
+        :param disjoint:
+            Active le mode disjoint pour les images.
+        :type disjoint:
+            un booléen
         """
         assert isinstance(minitel, Minitel)
+        assert isinstance(disjoint, bool)
 
         self.minitel = minitel
 
@@ -185,6 +191,7 @@ class ImageMinitel:
 
         self.largeur = 0
         self.hauteur = 0
+        self.disjoint = disjoint
 
     def envoyer(self, colonne = 1, ligne = 1):
         """Envoie l’image sur le Minitel à une position donnée
@@ -223,7 +230,6 @@ class ImageMinitel:
         :type niveau:
             une Image
         """
-        #assert isinstance(image, Image)
         assert image.size[0] <= 80
         assert image.size[1] <= 72
 
@@ -248,6 +254,9 @@ class ImageMinitel:
             # Passe en mode semi-graphique
             sequence.ajoute(SO)
 
+            if self.disjoint:
+                sequence.ajoute([ESC, 0x5A])
+
             for largeur in range(0, self.largeur):
                 # Récupère 6 pixels
                 pixels = [
@@ -257,12 +266,22 @@ class ImageMinitel:
                                   (0, 2), (1, 2)]
                 ]
 
-                # Convertit chaque couleur de pixel en huit niveau de gris
-                pixels = [_huit_niveaux(pixel) for pixel in pixels]
+                if self.disjoint:
+                    # Convertit chaque couleur de pixel en deux niveaux de gris
+                    pixels = [_huit_niveaux(pixel) for pixel in pixels]
 
-                # Recherche les deux couleurs les plus fréquentes
-                # un caractère ne peut avoir que deux couleurs !
-                arp, avp = _deux_couleurs(pixels)
+                    arp, avp = _deux_couleurs(pixels)
+
+                    if arp != 0:
+                        arp, avp = 0, arp
+
+                else:
+                    # Convertit chaque couleur de pixel en huit niveau de gris
+                    pixels = [_huit_niveaux(pixel) for pixel in pixels]
+
+                    # Recherche les deux couleurs les plus fréquentes
+                    # un caractère ne peut avoir que deux couleurs !
+                    arp, avp = _deux_couleurs(pixels)
 
                 # Réduit à deux le nombre de couleurs dans un bloc de 6 pixels
                 # Cela peut faire apparaître des artefacts mais est inévitable
@@ -286,8 +305,9 @@ class ImageMinitel:
 
                 # Si les couleurs du précédent caractères sont inversés,
                 # inverse le caractère mosaïque. Cela évite d’émettre
-                # à nouveau des codes couleurs
-                if old_arp == avp and old_avp == arp:
+                # à nouveau des codes couleurs. Cela fonctionne uniquement
+                # lorsque le mode disjoint n’est pas actif
+                if not self.disjoint and old_arp == avp and old_avp == arp:
                     # Inverse chaque bit à l’exception du 6e et du 8e
                     alpha = alpha ^ 0b01011111
                     avp, arp = arp, avp
@@ -328,6 +348,9 @@ class ImageMinitel:
                     sequence.ajoute([DC2, 0x40 + compte])
 
                 compte = 0
+
+            if self.disjoint:
+                sequence.ajoute([ESC, 0x59])
 
             # Une ligne vient d’être terminée, on la stocke dans la liste des
             # séquences
