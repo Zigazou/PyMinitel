@@ -949,35 +949,61 @@ class Minitel:
         """
         self.envoyer([CR])
 
-    def supprime(self, nombre):
+    def supprime(self, nb_colonne = None, nb_ligne = None):
         """Supprime des caractères après le curseur
 
-        En supprimant des caractères après le curseur, le Minitel ramène
-        les derniers caractères contenus sur la ligne.
+        En spécifiant un nombre de colonnes, cette méthode supprime des
+        caractères après le curseur, le Minitel ramène les derniers caractères
+        contenus sur la ligne.
+        
+        En spécifiant un nombre de lignes, cette méthode supprime des lignes
+        sous la ligne contenant le curseur, remontant les lignes suivantes.
 
-        :param nombre:
+        :param nb_colonne:
             nombre de caractères à supprimer
-        :type nombre:
+        :type nb_colonne:
+            un entier positif
+        :param nb_ligne:
+            nombre de lignes à supprimer
+        :type nb_ligne:
             un entier positif
         """
-        assert isinstance(nombre, int) and nombre >= 0
+        assert (isinstance(nb_colonne, int) and nb_colonne >= 0) or \
+                nb_colonne == None
+        assert (isinstance(nb_ligne, int) and nb_ligne >= 0) or \
+                nb_ligne == None
 
-        self.envoyer([CSI, str(nombre), 'M'])
+        if nb_colonne != None:
+            self.envoyer([CSI, str(nb_colonne), 'P'])
 
-    def insere(self, nombre):
+        if nb_ligne != None:
+            self.envoyer([CSI, str(nb_ligne), 'M'])
+
+    def insere(self, nb_colonne = None, nb_ligne = None):
         """Insère des caractères après le curseur
 
         En insérant des caractères après le curseur, le Minitel pousse les
         derniers caractères contenus sur la ligne à droite.
 
-        :param nombre:
+        :param nb_colonne:
             nombre de caractères à insérer
-        :type nombre:
+        :type nb_colonne:
+            un entier positif
+        :param nb_ligne:
+            nombre de lignes à insérer
+        :type nb_ligne:
             un entier positif
         """
-        assert isinstance(nombre, int) and nombre >= 0
+        assert (isinstance(nb_colonne, int) and nb_colonne >= 0) or \
+                nb_colonne == None
+        assert (isinstance(nb_ligne, int) and nb_ligne >= 0) or \
+                nb_ligne == None
 
-        self.envoyer([CSI, str(nombre), 'L'])
+        if nb_colonne != None:
+            self.envoyer([CSI, '4h', ' ' * nb_colonne, CSI, '4l'])
+
+        if nb_ligne != None:
+            self.envoyer([CSI, str(nombre), 'L'])
 
     def semigraphique(self, actif = True):
         """Passe en mode semi-graphique ou en mode alphabétique
