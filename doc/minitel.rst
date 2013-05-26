@@ -17,6 +17,14 @@ minitel Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`ImageMinitel` Module
+--------------------------
+
+.. automodule:: minitel.ImageMinitel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`Sequence` Module
 ----------------------
 

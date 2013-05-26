@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Minitel est un module permettant de piloter un Minitel depuis un script
 écrit en Python.
-
 """
 
 from serial import Serial      # Liaison physique avec le Minitel
