@@ -897,7 +897,9 @@ class Minitel:
             - du curseur jusqu’au bas de l’écran ('finecran'),
             - du début de l’écran jusqu’au curseur ('debutecran'),
             - du début de la ligne jusqu’au curseur ('debut_ligne'),
-            - la ligne entière ('ligne').
+            - la ligne entière ('ligne'),
+            - la ligne de statut, rangée 00 ('statut'),
+            - tout l’écran et la ligne de statut ('vraimenttout').
         :type porte:
             une chaîne de caractères
         """
@@ -908,7 +910,9 @@ class Minitel:
             'debutecran': [CSI, 0x31, 0x4a],
             #'tout': [CSI, 0x32, 0x4a],
             'debut_ligne': [CSI, 0x31, 0x4b],
-            'ligne': [CSI, 0x32, 0x4b]
+            'ligne': [CSI, 0x32, 0x4b],
+            'statut': [US, 0x40, 0x41, CAN, LF],
+            'vraimenttout': [FF, US, 0x40, 0x41, CAN, LF]
         }
 
         assert portee in portees
