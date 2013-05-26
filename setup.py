@@ -9,7 +9,7 @@ setup(
     author           = u'Frédéric Bisson',
     author_email     = 'zigazou@free.fr',
     url              = 'http://redmine.jeannedhack.org/projects/pyminitel',
-    version          = '0.1.0',
+    version          = '0.1.2',
     packages         = ['minitel', 'minitel.ui'],
     platforms        = ['Linux'],
     license          = 'GNU GPLv3',
