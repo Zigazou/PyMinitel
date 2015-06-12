@@ -12,7 +12,7 @@ from ..constantes import (
 CARACTERES_MINITEL = (
     'abcdefghijklmnopqrstuvwxyz' +
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
-    ' *$!:;,?./&(-_)=+\'@' +
+    ' *$!:;,?./&(-_)=+\'@#' +
     '0123456789'
 )
 
