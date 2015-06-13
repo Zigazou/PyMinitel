@@ -225,6 +225,7 @@ class ChampTexte(UI):
         Cette méthode est appelée dès que l’on veut afficher l’élément.
         """
         # Début du champ texte à l’écran
+        self.minitel.curseur(False)
         self.minitel.position(self.posx, self.posy)
 
         # Couleur du label
@@ -250,4 +251,5 @@ class ChampTexte(UI):
             self.posx + self.curseur_x - self.decalage,
             self.posy
         )
+        self.minitel.curseur(True)
 
