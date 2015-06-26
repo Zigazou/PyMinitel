@@ -33,9 +33,11 @@ class ChampTexte(UI):
     - curseur_x : position du curseur dans le champ
     - decalage : début d’affichage du champ à l’écran
     - accent : accent en attente d’application sur le prochain caractère
+    - champ_cache : les caractères ne sont pas affichés sur le minitel, il sont
+                    remplacés par des '*' (utiliser pour les mots de passes par exemple)
     """
     def __init__(self, minitel, posx, posy, longueur_visible,
-                 longueur_totale = None, valeur = u'', couleur = None):
+                 longueur_totale = None, valeur = u'', couleur = None, champ_cache=False):
         assert isinstance(posx, int)
         assert isinstance(posy, int)
         assert isinstance(longueur_visible, int)
@@ -57,6 +59,7 @@ class ChampTexte(UI):
         self.decalage = 0
         self.activable = True
         self.accent = None
+        self.champ_cache = champ_cache
 
     def gere_touche(self, sequence):
         """Gestion des touches
@@ -232,13 +235,19 @@ class ChampTexte(UI):
         if self.couleur != None:
             self.minitel.couleur(caractere = self.couleur)
 
-        if len(self.valeur) - self.decalage <= self.longueur_visible:
+        if not self.champ_cache :
+            #Si le champ n'est pas caché, on affiche les caractères
+            val = str( self.valeur )
+        else : 
+            val = "*" * len( self.valeur  ) 
+
+        if len(val) - self.decalage <= self.longueur_visible:
             # Cas valeur plus petite que la longueur visible
-            affichage = self.valeur[self.decalage:]
+            affichage = val[self.decalage:]
             affichage = affichage.ljust(self.longueur_visible, '.')
         else:
             # Cas valeur plus grande que la longueur visible
-            affichage = self.valeur[
+            affichage = val[
                 self.decalage:
                 self.decalage + self.longueur_visible
             ]
