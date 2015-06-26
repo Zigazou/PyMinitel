@@ -252,15 +252,21 @@ class Minitel:
         :param attente:
             attente en secondes, valeurs en dessous de la seconde
             acceptées. Valide uniquement en mode bloque = True
+            Si attente = None et bloque = True, alors on attend
+            indéfiniment qu'un caractère arrive. 
         :type attente:
-            un entier
+            un entier, ou None
+
+        :raise Empty: 
+            Lance une exception de type Empty si le bloque = True 
+            et que le temps d'attente a été dépassé
         """
         assert bloque in [True, False]
-        assert isinstance(attente, float) or attente == None
+        assert isinstance(attente, (int,float)) or attente == None
 
         return self.entree.get(bloque, attente)
 
-    def recevoir_sequence(self):
+    def recevoir_sequence(self,bloque = True, attente=None):
         """Lit une séquence en provenance du Minitel
 
         Retourne un objet Sequence reçu depuis le Minitel. Cette fonction
@@ -275,6 +281,21 @@ class Minitel:
         C’est cette méthode qui doit être utilisée plutôt que la méthode
         recevoir lorsqu’on dialogue avec le Minitel.
 
+        :param bloque:
+            True pour attendre une séquence s’il n’y en a pas dans la
+            file d’attente de réception. False pour ne pas attendre et
+            retourner immédiatement.
+        :type bloque:
+            un booléen
+
+        :param attente:
+            attente en secondes, valeurs en dessous de la seconde
+            acceptées. Valide uniquement en mode bloque = True
+            Si attente = None et bloque = True, alors on attend
+            indéfiniment qu'un caractère arrive. 
+        :type attente:
+            un entier, ou None
+
         :returns:
             un objet Sequence
         """
@@ -282,7 +303,7 @@ class Minitel:
         sequence = Sequence()
 
         # Ajoute le premier caractère lu à la séquence en mode bloquant
-        sequence.ajoute(self.recevoir(bloque = True))
+        sequence.ajoute(self.recevoir(bloque = bloque, attente = attente))
         assert sequence.longueur != 0
 
         # Teste le caractère reçu
