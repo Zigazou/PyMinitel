@@ -17,6 +17,17 @@ minitel.echo(False)
 minitel.efface('vraimenttout')
 minitel.curseur(False)
 
+n = 5 
+
+minitel.envoyer(u'Ce texte sera effacé dans {} secondes'.format(n) )
+minitel.sortie.join()
+
+for i in range(n) :
+	minitel.position(1,i+2)
+	minitel.envoyer( str(n-i) ) 
+	sleep(1)
+
+minitel.efface('vraimenttout')
 minitel.envoyer('Hello world !')
 minitel.sortie.join()
 

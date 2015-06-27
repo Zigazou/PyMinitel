@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Base pour la création d’une interface utilisateur pour le Minitel"""
 
-from ..Minitel import Minitel
+from ..Minitel import Minitel,Empty
 
 class UI:
     """Classe de base pour la création d’élément d’interface utilisateur
@@ -90,8 +90,12 @@ class UI:
         gérer l’appui des touches (méthode gere_touche) provenant du Minitel.
         Dès qu’une touche n’est pas gérée par l’élément, la boucle s’arrête.
         """
-        while self.gere_touche(self.minitel.recevoir_sequence()):
-            pass
+        while True:
+            try:
+                r = self.minitel.recevoir_sequence(attente=30)
+                self.gere_touche(r)
+            except Empty :
+                pass
 
     def affiche(self):
         """Affiche l’élément
