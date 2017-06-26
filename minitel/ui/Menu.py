@@ -164,7 +164,7 @@ class Menu(UI):
         self.minitel.envoyer([0x7d])
 
         # 2 cas possibles : un séparateur ou une entrée normale
-        if self.options[selection] == u'-':
+        if self.options[selection] == '-':
             self.minitel.repeter(0x60, self.largeur_ligne)
         else:
             # Si l’option est sélectionnée, on applique l’effet vidéo inverse
@@ -228,7 +228,7 @@ class Menu(UI):
         # de la liste des options
         for i in range(numero + 1, len(self.options)):
             # Les séparateurs sont ignorés
-            if self.options[i] != u'-':
+            if self.options[i] != '-':
                 return i
 
         # Aucune option n’a été trouvée après celle indiquée dans numero
@@ -255,7 +255,7 @@ class Menu(UI):
         # de la liste des options
         for i in range(numero - 1, -1, -1):
             # Les séparateurs sont ignorés
-            if self.options[i] != u'-':
+            if self.options[i] != '-':
                 return i
 
         # Aucune option n’a été trouvée avant celle indiquée dans numero

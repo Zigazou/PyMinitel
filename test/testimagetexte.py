@@ -18,7 +18,7 @@ minitel.efface()
 minitel.curseur(False)
 
 minitel.position(1, 0)
-minitel.envoyer(u"PyMinitel v0.1.2 - Frédéric Bisson")
+minitel.envoyer("PyMinitel v0.2.0 - Frédéric Bisson")
 minitel.efface(portee = 'finligne')
 
 image = Image.open('testimage2.jpg')
@@ -36,10 +36,10 @@ minitel.envoyer('___________')
 
 textes = [
     # ---------------------
-    u"  Une bibliothèque",
-    u"Python pour contrôler",
-    u"un Minitel depuis un",
-    u"ordinateur sous Linux"
+    "  Une bibliothèque",
+    "Python pour contrôler",
+    "un Minitel depuis un",
+    "ordinateur sous Linux"
 ]
 
 ligne = 12

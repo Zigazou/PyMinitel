@@ -16,18 +16,18 @@ minitel.efface()
 minitel.curseur(False)
 
 options = [
-  u'Nouveau',
-  u'Ouvrir',
-  u'-',
-  u'Enregistrer',
-  u'Enreg. sous...',
-  u'Rétablir',
-  u'-',
-  u'Aperçu',
-  u'Imprimer...',
-  u'-',
-  u'Fermer',
-  u'Quitter'
+  'Nouveau',
+  'Ouvrir',
+  '-',
+  'Enregistrer',
+  'Enreg. sous...',
+  'Rétablir',
+  '-',
+  'Aperçu',
+  'Imprimer...',
+  '-',
+  'Fermer',
+  'Quitter'
 ]
 
 menu = Menu(minitel, options, 5, 3)

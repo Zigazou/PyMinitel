@@ -23,27 +23,27 @@ minitel.curseur(False)
 conteneur = Conteneur(minitel, 1, 1, 32, 17, 'blanc', 'noir')
 
 options = [
-  u'Nouveau',
-  u'Ouvrir',
-  u'-',
-  u'Enregistrer',
-  u'Enreg. sous...',
-  u'Rétablir',
-  u'-',
-  u'Aperçu',
-  u'Imprimer...',
-  u'-',
-  u'Fermer',
-  u'Quitter'
+  'Nouveau',
+  'Ouvrir',
+  '-',
+  'Enregistrer',
+  'Enreg. sous...',
+  'Rétablir',
+  '-',
+  'Aperçu',
+  'Imprimer...',
+  '-',
+  'Fermer',
+  'Quitter'
 ]
 
-labelMenu = Label(minitel, 2, 2, u"Menu", 'rouge')
+labelMenu = Label(minitel, 2, 2, "Menu", 'rouge')
 menu = Menu(minitel, options, 9, 1)
 
-labelNom = Label(minitel, 2, 15, u"Nom", 'rouge')
+labelNom = Label(minitel, 2, 15, "Nom", 'rouge')
 champNom = ChampTexte(minitel, 10, 15, 20, 60)
 
-labelPrenom = Label(minitel, 2, 16, u"Prénom", 'rouge')
+labelPrenom = Label(minitel, 2, 16, "Prénom", 'rouge')
 champPrenom = ChampTexte(minitel, 10, 16, 20, 60)
 
 conteneur.ajoute(labelMenu)

@@ -5,11 +5,11 @@ from distutils.core import setup
 
 setup(
     name             = 'PyMinitel',
-    description      = u'Bibliothèque pour piloter un Minitel depuis un PC',
-    author           = u'Frédéric Bisson',
+    description      = 'Bibliothèque pour piloter un Minitel depuis un PC',
+    author           = 'Frédéric Bisson',
     author_email     = 'zigazou@free.fr',
-    url              = 'http://redmine.jeannedhack.org/projects/pyminitel',
-    version          = '0.1.2',
+    url              = 'https://github.com/Zigazou/PyMinitel',
+    version          = '0.2.0',
     packages         = ['minitel', 'minitel.ui'],
     platforms        = ['Linux'],
     license          = 'GNU GPLv3',

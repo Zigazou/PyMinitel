@@ -6,7 +6,7 @@
 
 from serial import Serial      # Liaison physique avec le Minitel
 from threading import Thread   # Threads pour l’émission/réception
-from Queue import Queue, Empty # Files de caractères pour l’émission/réception
+from queue import Queue, Empty # Files de caractères pour l’émission/réception
 
 from minitel.Sequence import Sequence # Gestion des séquences de caractères
 
@@ -206,7 +206,8 @@ class Minitel:
         while self._continuer or not self.sortie.empty():
             # Attend un caractère pendant 1 seconde
             try:
-                self._minitel.write(self.sortie.get(block = True, timeout = 1))
+                sortie_unicode = self.sortie.get(block = True, timeout = 1)
+                self._minitel.write(sortie_unicode.encode())
 
                 # Attend que le caractère envoyé au minitel ait bien été envoyé
                 # car la sortie est bufferisée
@@ -264,7 +265,7 @@ class Minitel:
         assert bloque in [True, False]
         assert isinstance(attente, (int,float)) or attente == None
 
-        return self.entree.get(bloque, attente)
+        return self.entree.get(bloque, attente).decode()
 
     def recevoir_sequence(self,bloque = True, attente=None):
         """Lit une séquence en provenance du Minitel
@@ -378,7 +379,8 @@ class Minitel:
         for _ in range(0, attente):
             try:
                 # Attend un caractère
-                retour.ajoute(self.entree.get(block = True, timeout = 1))
+                entree_bytes = self.entree.get(block = True, timeout = 1)
+                retour.ajoute(entree_bytes.decode())
             except Empty:
                 # Si un caractère n’a pas été envoyé en moins d’une seconde,
                 # on abandonne
@@ -504,10 +506,10 @@ class Minitel:
 
         # Correction du constructeur
         if constructeur_minitel == 'B' and type_minitel == 'v':
-            self.capacite['constructeur'] = u'Philips'
+            self.capacite['constructeur'] = 'Philips'
         elif constructeur_minitel == 'C':
             if version_logiciel == ['4', '5', ';', '<']:
-                self.capacite['constructeur'] = u'Telic ou Matra'
+                self.capacite['constructeur'] = 'Telic ou Matra'
 
         # Détermine le mode écran dans lequel se trouve le Minitel
         retour = self.appeler([PRO1, STATUS_FONCTIONNEMENT], LONGUEUR_PRO2)
@@ -955,7 +957,7 @@ class Minitel:
         """
         assert isinstance(longueur, int)
         assert longueur > 0 and longueur <= 40
-        assert isinstance(caractere, (str, unicode, int, list))
+        assert isinstance(caractere, (str, int, list))
         assert isinstance(caractere, int) or len(caractere) == 1
 
         self.envoyer([caractere, REP, 0x40 + longueur - 1])

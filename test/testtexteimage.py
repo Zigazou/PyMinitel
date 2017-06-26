@@ -30,7 +30,7 @@ minitel.curseur(False)
 
 # Met à jour la ligne de contrôle
 minitel.position(1, 0)
-minitel.envoyer(u"PyMinitel v0.1.2 - Frédéric Bisson")
+minitel.envoyer("PyMinitel v0.1.2 - Frédéric Bisson")
 minitel.efface(portee = 'finligne')
 
 image_minitel1 = ImageMinitel(minitel, disjoint = False)

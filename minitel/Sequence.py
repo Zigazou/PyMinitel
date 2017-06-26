@@ -10,23 +10,23 @@ from binascii import unhexlify
 
 # Tables de conversion des caractères spéciaux
 UNICODEVERSVIDEOTEX = {
-    u'£': '1923', u'°': '1930', u'±': '1931', 
-    u'←': '192C', u'↑': '192D', u'→': '192E', u'↓': '192F', 
-    u'¼': '193C', u'½': '193D', u'¾': '193E', 
-    u'ç': '194B63', u'’': '194B27', 
-    u'à': '194161', u'á': '194261', u'â': '194361', u'ä': '194861', 
-    u'è': '194165', u'é': '194265', u'ê': '194365', u'ë': '194865', 
-    u'ì': '194169', u'í': '194269', u'î': '194369', u'ï': '194869', 
-    u'ò': '19416F', u'ó': '19426F', u'ô': '19436F', u'ö': '19486F', 
-    u'ù': '194175', u'ú': '194275', u'û': '194375', u'ü': '194875', 
-    u'Œ': '196A', u'œ': '197A', 
-    u'ß': '197B', u'β': '197B'
+    '£': '1923', '°': '1930', '±': '1931', 
+    '←': '192C', '↑': '192D', '→': '192E', '↓': '192F', 
+    '¼': '193C', '½': '193D', '¾': '193E', 
+    'ç': '194B63', '’': '194B27', 
+    'à': '194161', 'á': '194261', 'â': '194361', 'ä': '194861', 
+    'è': '194165', 'é': '194265', 'ê': '194365', 'ë': '194865', 
+    'ì': '194169', 'í': '194269', 'î': '194369', 'ï': '194869', 
+    'ò': '19416F', 'ó': '19426F', 'ô': '19436F', 'ö': '19486F', 
+    'ù': '194175', 'ú': '194275', 'û': '194375', 'ü': '194875', 
+    'Œ': '196A', 'œ': '197A', 
+    'ß': '197B', 'β': '197B'
 }
 
 UNICODEVERSAUTRE = {
-    u'£': '0E230F',
-    u'°': '0E5B0F', u'ç': '0E5C0F', u'’': '27', u'`': '60', u'§': '0E5D0F',
-    u'à': '0E400F', u'è': '0E7F0F', u'é': '0E7B0F', u'ù': '0E7C0F'
+    '£': '0E230F',
+    '°': '0E5B0F', 'ç': '0E5C0F', '’': '27', '`': '60', '§': '0E5D0F',
+    'à': '0E400F', 'è': '0E7F0F', 'é': '0E7B0F', 'ù': '0E7C0F'
 }
 
 class Sequence:
@@ -53,7 +53,7 @@ class Sequence:
             une chaîne de caractères
         """
         assert valeur == None or \
-                isinstance(valeur, (list, int, str, unicode, Sequence))
+                isinstance(valeur, (list, int, str, Sequence))
         assert standard in ['VIDEOTEX', 'MIXTE', 'TELEINFORMATIQUE']
 
         self.valeurs = []
@@ -75,7 +75,7 @@ class Sequence:
         :type valeur:
             une chaîne de caractères, un entier, une liste ou une Séquence
         """
-        assert isinstance(valeur, (list, int, str, unicode, Sequence))
+        assert isinstance(valeur, (list, int, str, Sequence))
 
         self.valeurs += self.canonise(valeur)
         self.longueur = len(self.valeurs)
@@ -102,7 +102,7 @@ class Sequence:
             canonise(['dd', 32, ['dd', 32]]) retournera
             [100, 100, 32, 100, 100, 32]
         """
-        assert isinstance(valeur, (list, int, str, unicode, Sequence))
+        assert isinstance(valeur, (list, int, str, Sequence))
 
         # Si la valeur est juste un entier, on le retient dans une liste
         if isinstance(valeur, int):
@@ -118,16 +118,11 @@ class Sequence:
         canonise = []
         for element in valeur:
             if isinstance(element, str):
-                # Cette boucle traite 2 cas : celui ou liste est une chaîne de
-                # caractères et celui ou element est une chaîne de caractères
-                for caractere in element:
-                    canonise.append(ord(caractere))
-            elif isinstance(element, unicode):
                 # Cette boucle traite 2 cas : celui ou liste est une chaîne
                 # unicode et celui ou element est une chaîne de caractères
                 for caractere in element:
                     for ascii in self.unicode_vers_minitel(caractere):
-                        canonise.append(ord(ascii))
+                        canonise.append(ascii)
             elif isinstance(element, int):
                 # Un entier a juste besoin d’être ajouté à la liste finale
                 canonise.append(element)
@@ -149,7 +144,7 @@ class Sequence:
             une chaîne de caractères contenant une suite de caractères à
             destination du Minitel.
         """
-        assert isinstance(caractere, unicode) and len(caractere) == 1
+        assert isinstance(caractere, str) and len(caractere) == 1
 
         if self.standard == 'VIDEOTEX':
             if caractere in UNICODEVERSVIDEOTEX:
@@ -174,7 +169,7 @@ class Sequence:
         :returns:
             True si les 2 séquences sont égales, False sinon
         """
-        assert isinstance(sequence, (Sequence, list, int, str, unicode))
+        assert isinstance(sequence, (Sequence, list, int, str))
 
         # Si la séquence à comparer n’est pas de la classe Sequence, alors
         # on la convertit

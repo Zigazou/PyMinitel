@@ -19,7 +19,7 @@ minitel.curseur(False)
 
 n = 5 
 
-minitel.envoyer(u'Ce texte sera effacé dans {} secondes'.format(n) )
+minitel.envoyer('Ce texte sera effacé dans {} secondes'.format(n) )
 minitel.sortie.join()
 
 for i in range(n) :

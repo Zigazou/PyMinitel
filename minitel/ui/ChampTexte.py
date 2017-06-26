@@ -37,12 +37,12 @@ class ChampTexte(UI):
                     remplacés par des '*' (utiliser pour les mots de passes par exemple)
     """
     def __init__(self, minitel, posx, posy, longueur_visible,
-                 longueur_totale = None, valeur = u'', couleur = None, champ_cache=False):
+                 longueur_totale = None, valeur = '', couleur = None, champ_cache=False):
         assert isinstance(posx, int)
         assert isinstance(posy, int)
         assert isinstance(longueur_visible, int)
         assert isinstance(longueur_totale, int) or longueur_totale == None
-        assert isinstance(valeur, (str, unicode))
+        assert isinstance(valeur, str)
         assert posx + longueur_visible < 80
         assert longueur_visible >= 1
         if longueur_totale == None:
@@ -54,7 +54,7 @@ class ChampTexte(UI):
         # Initialise le champ
         self.longueur_visible = longueur_visible
         self.longueur_totale = longueur_totale
-        self.valeur = u'' + valeur
+        self.valeur = '' + valeur
         self.curseur_x = 0
         self.decalage = 0
         self.activable = True
@@ -107,23 +107,23 @@ class ChampTexte(UI):
         elif sequence.egale([ACCENT_CEDILLE, 'c']):
             self.accent = None
             self.valeur = (self.valeur[0:self.curseur_x] +
-                           u'ç' +
+                           'ç' +
                            self.valeur[self.curseur_x:])
             self.curseur_droite()
             self.affiche()
             return True
         elif chr(sequence.valeurs[0]) in CARACTERES_MINITEL:
-            caractere = u'' + chr(sequence.valeurs[0])
+            caractere = '' + chr(sequence.valeurs[0])
             if self.accent != None:
                 if caractere in 'aeiou':
                     if self.accent.egale(ACCENT_AIGU):
-                        caractere = u'áéíóú'['aeiou'.index(caractere)]
+                        caractere = 'áéíóú'['aeiou'.index(caractere)]
                     elif self.accent.egale(ACCENT_GRAVE):
-                        caractere = u'àèìòù'['aeiou'.index(caractere)]
+                        caractere = 'àèìòù'['aeiou'.index(caractere)]
                     elif self.accent.egale(ACCENT_CIRCONFLEXE):
-                        caractere = u'âêîôû'['aeiou'.index(caractere)]
+                        caractere = 'âêîôû'['aeiou'.index(caractere)]
                     elif self.accent.egale(ACCENT_TREMA):
-                        caractere = u'äëïöü'['aeiou'.index(caractere)]
+                        caractere = 'äëïöü'['aeiou'.index(caractere)]
 
                 self.accent = None
 
@@ -157,7 +157,10 @@ class ChampTexte(UI):
 
         # Effectue un décalage si le curseur déborde de la zone visible
         if self.curseur_x < self.decalage:
-            self.decalage = max(0, self.decalage - self.longueur_visible / 2)
+            self.decalage = max(
+                0,
+                int(self.decalage - self.longueur_visible / 2)
+            )
             self.affiche()
         else:
             self.minitel.position(
@@ -188,7 +191,10 @@ class ChampTexte(UI):
 
         # Effectue un décalage si le curseur déborde de la zone visible
         if self.curseur_x > self.decalage + self.longueur_visible:
-            self.decalage = max(0, self.decalage + self.longueur_visible / 2)
+            self.decalage = max(
+                0,
+                int(self.decalage + self.longueur_visible / 2)
+            )
             self.affiche()
         else:
             self.minitel.position(

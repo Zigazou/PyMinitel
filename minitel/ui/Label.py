@@ -11,7 +11,7 @@ class Label(UI):
     def __init__(self, minitel, posx, posy, valeur = '', couleur = None):
         assert isinstance(posx, int)
         assert isinstance(posy, int)
-        assert isinstance(valeur, str) or isinstance(valeur, unicode)
+        assert isinstance(valeur, str) or isinstance(valeur, str)
 
         # Initialise le champ
         self.valeur = valeur

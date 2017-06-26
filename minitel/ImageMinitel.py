@@ -235,8 +235,8 @@ class ImageMinitel:
 
         # En mode semi-graphique, un caractère a 2 pixels de largeur
         # et 3 pixels de hauteur
-        self.largeur = image.size[0] / 2
-        self.hauteur = image.size[1] / 3
+        self.largeur = int(image.size[0] / 2)
+        self.hauteur = int(image.size[1] / 3)
 
         # Initialise la liste des séquences
         self.sequences = []

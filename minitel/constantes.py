@@ -161,7 +161,7 @@ CONNEXION  = [DC3, 0x49]
 # Types de minitels
 TYPE_MINITELS = {
     'b': {
-        'nom': u'Minitel 1',
+        'nom': 'Minitel 1',
         'retournable': False,
         'clavier': 'ABCD',
         'vitesse': 1200,
@@ -169,7 +169,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'c': {
-        'nom': u'Minitel 1',
+        'nom': 'Minitel 1',
         'retournable': False,
         'clavier': 'Azerty',
         'vitesse': 1200,
@@ -177,7 +177,7 @@ TYPE_MINITELS = {
         'caracteres': False 
     },
     'd': {
-        'nom': u'Minitel 10',
+        'nom': 'Minitel 10',
         'retournable': False,
         'clavier': 'Azerty',
         'vitesse': 1200,
@@ -185,7 +185,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'e': {
-        'nom': u'Minitel 1 couleur',
+        'nom': 'Minitel 1 couleur',
         'retournable': False,
         'clavier': 'Azerty',
         'vitesse': 1200,
@@ -193,7 +193,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'f': {
-        'nom': u'Minitel 10',
+        'nom': 'Minitel 10',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 1200,
@@ -201,7 +201,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'g': {
-        'nom': u'Émulateur',
+        'nom': 'Émulateur',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 9600,
@@ -209,7 +209,7 @@ TYPE_MINITELS = {
         'caracteres': True
     },
     'j': {
-        'nom': u'Imprimante',
+        'nom': 'Imprimante',
         'retournable': False,
         'clavier': None,
         'vitesse': 1200,
@@ -217,7 +217,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'r': {
-        'nom': u'Minitel 1',
+        'nom': 'Minitel 1',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 1200,
@@ -225,7 +225,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     's': {
-        'nom': u'Minitel 1 couleur',
+        'nom': 'Minitel 1 couleur',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 1200,
@@ -233,7 +233,7 @@ TYPE_MINITELS = {
         'caracteres': False 
     },
     't': {
-        'nom': u'Terminatel 252',
+        'nom': 'Terminatel 252',
         'retournable': False,
         'clavier': None,
         'vitesse': 1200,
@@ -241,7 +241,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'u': {
-        'nom': u'Minitel 1B',
+        'nom': 'Minitel 1B',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 4800,
@@ -249,7 +249,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'v': {
-        'nom': u'Minitel 2',
+        'nom': 'Minitel 2',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 9600,
@@ -257,7 +257,7 @@ TYPE_MINITELS = {
         'caracteres': True
     },
     'w': {
-        'nom': u'Minitel 10B',
+        'nom': 'Minitel 10B',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 4800,
@@ -265,7 +265,7 @@ TYPE_MINITELS = {
         'caracteres': False
     },
     'y': {
-        'nom': u'Minitel 5',
+        'nom': 'Minitel 5',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 9600,
@@ -273,7 +273,7 @@ TYPE_MINITELS = {
         'caracteres': True
     },
     'z': {
-        'nom': u'Minitel 12',
+        'nom': 'Minitel 12',
         'retournable': True,
         'clavier': 'Azerty',
         'vitesse': 9600,
@@ -295,11 +295,11 @@ COULEURS_MINITEL = {
 
 # Capacités les plus basiques du Minitel
 CAPACITES_BASIQUES = {
-    'nom': u'Minitel inconnu',
+    'nom': 'Minitel inconnu',
     'retournable': False,
     'clavier': 'ABCD',
     'vitesse': 1200,
-    'constructeur': u'Inconnu',
+    'constructeur': 'Inconnu',
     '80colonnes': False,
     'caracteres': False,
     'version': None
@@ -307,16 +307,16 @@ CAPACITES_BASIQUES = {
 
 # Codes d’identification du constructeur
 CONSTRUCTEURS = {
-    'A': u'Matra',
-    'B': u'RTIC',
-    'C': u'Telic-Alcatel',
-    'D': u'Thomson',
-    'E': u'CCS',
-    'F': u'Fiet',
-    'G': u'Fime',
-    'H': u'Unitel',
-    'I': u'Option',
-    'J': u'Bull',
-    'K': u'Télématique',
-    'L': u'Desmet'
+    'A': 'Matra',
+    'B': 'RTIC',
+    'C': 'Telic-Alcatel',
+    'D': 'Thomson',
+    'E': 'CCS',
+    'F': 'Fiet',
+    'G': 'Fime',
+    'H': 'Unitel',
+    'I': 'Option',
+    'J': 'Bull',
+    'K': 'Télématique',
+    'L': 'Desmet'
 }
