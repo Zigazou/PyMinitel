@@ -29,7 +29,7 @@ def _huit_niveaux(niveau):
     # Niveau peut soit être un tuple soit un entier
     # Gère les deux cas en testant l’exception
     try:
-        return niveau * 8 / 256
+        return int(niveau * 8 / 256)
     except TypeError:
         return int(
             round(
