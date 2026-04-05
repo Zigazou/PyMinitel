@@ -61,6 +61,18 @@ class ChampTexte(UI):
         self.accent = None
         self.champ_cache = champ_cache
 
+    def reinitialise(self):
+        """ Réinitialise le champ texte
+
+        Cette méthode vide le champ texte et réinitalise les variables internes.
+        """
+        self.valeur = ''
+        self.curseur_x = 0
+        self.decalage = 0
+        self.activable = True
+        self.accent = None
+
+
     def gere_touche(self, sequence):
         """Gestion des touches
 

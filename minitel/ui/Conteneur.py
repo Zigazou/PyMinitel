@@ -253,3 +253,23 @@ class Conteneur(UI):
 
         return False
 
+    def active(self, index):
+        """Change l'élément actif
+
+        Cette méthode modifie l'élément actif
+
+        :returns:
+            True si un élément actif a été changé,
+            False sinon.
+        """
+
+        if index < len(self.elements) - 1:
+            if self.elements[index].activable == False:
+                return False
+            if self.element_actif == None:
+                self.element_actif.gere_depart()
+            self.element_actif = self.elements[index]
+            self.element_actif.gere_arrivee()
+            return True
+        else:
+            return False
