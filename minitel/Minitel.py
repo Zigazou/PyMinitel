@@ -1135,7 +1135,7 @@ class Minitel:
         self.envoyer([US, 0x41, 0x41])
 
         # Sélectionne le jeu de caractère fraîchement modifié (G’0 ou G’1)
-        if jeu == 'GO':
+        if jeu == 'G0':
             self.envoyer([ESC, 0x28, 0x20, 0x42])
         else:
             self.envoyer([ESC, 0x29, 0x20, 0x43])
